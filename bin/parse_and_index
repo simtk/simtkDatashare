@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Find all studies sub-directories, parse, and index.
+for dirStudies in $(find /usr/local/mobilizeds/study/ -mindepth 1 -maxdepth 1 -name "study*" -type d -print)
+do
+	echo /usr/local/mobilizeds/bin/index/study $dirStudies/files
+	/usr/local/mobilizeds/bin/index/study $dirStudies/files
+done
+cd /var/www/include/js; chown www-data:www-data study*-fields.js

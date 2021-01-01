@@ -1,0 +1,215 @@
+#! /usr/bin/perl
+use File::Find;
+use File::Slurp;
+use YAML;
+use JSON::XS;
+use XML::Simple;
+
+our $root = shift;
+our $json = new JSON::XS()->canonical();
+our $xs = new XML::Simple();
+our $meta = '(?:metadata|subject\d+)\.(ya?ml|xml|json|csv)';
+
+find({
+	preprocess => \&skip_hidden,
+	wanted => \&start_tag,
+	postprocess => \&end_tag
+}, $root);
+
+# ============================================================
+sub skip_hidden {
+# ============================================================
+	my @paths = grep {!/^\./} @_;
+	return @paths;
+}
+
+# ============================================================
+sub start_tag {
+# ============================================================
+	my $path  = $File::Find::dir;
+	$path =~ s/^$root\/?//;
+	$path =~ s/\/+/\//g;
+	my @paths = split /\//, $path;
+	my $k = int(@paths);
+	if ( -f ) {
+		if (/$meta/i) {
+			# Use only metadata file whose name starts with "metadata.".
+			my $idxLeadMeta = index(lc($_), "metadata.json");
+			if ($idxLeadMeta == 0) {
+				parse_metadata($_, $k, $path);
+			}
+			$idxLeadMeta = index(lc($_), "metadata.xml");
+			if ($idxLeadMeta == 0) {
+				parse_metadata($_, $k, $path);
+			}
+			$idxLeadMeta = index(lc($_), "metadata.yaml");
+			if ($idxLeadMeta == 0) {
+				parse_metadata($_, $k, $path);
+			}
+			$idxLeadMeta = index(lc($_), "metadata.yml");
+			if ($idxLeadMeta == 0) {
+				parse_metadata($_, $k, $path);
+			}
+		}
+		else {
+			print tab($k) .
+				"<div class=\"file\" name=\"$_\"></div>\n";
+		}
+	}
+	elsif ( -d ) {
+		if (/^\./) {
+			return;
+		}
+		print tab($k) .
+			"<div class=\"folder\" name=\"$_\">\n";
+	}
+}
+
+# ============================================================
+sub parse_metadata {
+# ============================================================
+	local $_ = shift;
+	my $k = shift;
+	my $path = shift;
+
+	my $type = lc $1;
+	my $contents;
+
+	if ($type =~ /json/) {
+		$contents = read_file($_);
+		$contents = $json->decode($contents);
+	}
+	elsif ($type =~ /xml/) {
+		$contents = read_file($_);
+		$contents = $xs->XMLin($contents);
+	}
+	elsif ($type =~ /ya?ml/) {
+
+		# Add keywords handling for YAML files.
+		$myStr = "";
+		my $filename = $_;
+		if (open(my $fh, '<', $filename)) {
+			# Read each line from file.
+			while (my $line = <$fh>) {
+				# Check if more than one ':' is present.
+				my @strTokens = ($line =~ /:/g);
+				if (scalar(@strTokens) > 1) {
+
+					# Get number of leading spaces.
+					$line =~ m/^(\s*)/;
+					my $cntLeadSpace = length($1);
+					# String of leading spaces.
+					my $leadSpace = (' ' x $cntLeadSpace);
+
+					# Separate "type:", "unit:", "value:" 
+					# into new lines with leading spaces.
+					# (Check is case-insensitive).
+					$line =~ s/ type:/\n$leadSpace  type:/ig;
+					$line =~ s/ unit:/\n$leadSpace  unit:/ig;
+					$line =~ s/ value:/\n$leadSpace  value:/ig;
+					$line =~ s/:type:/:\n$leadSpace  type:/ig;
+					$line =~ s/:unit:/:\n$leadSpace  unit:/ig;
+					$line =~ s/:value:/:\n$leadSpace  value:/ig;
+				}
+				$myStr .= $line;
+			}
+		}
+		$contents = $myStr;
+
+		$contents = Load($contents);
+	}
+
+	my $html = lc(metadata2html($path, $contents, $k + 1));
+
+	print tab($k) .
+		"<div class=\"metadata file\" name=\"$_\">\n$html" .
+		tab($k) .
+		"</div>\n";
+}
+
+# ============================================================
+sub end_tag {
+# ============================================================
+	my $path  = $File::Find::dir;
+	$path =~ s/^$root\/?//;
+	my @paths = split /\//, $path;
+	my $k     = int(@paths) - 1;
+	print tab($k) .
+		"</div>\n" if ($k >= 0);
+}
+
+# ============================================================
+sub tab {
+# ============================================================
+	my $k = shift;
+	my $tabs = $k > 0 ? ("  " x $k) : '';
+	return $tabs;
+}
+
+# ============================================================
+sub metadata2html {
+# ============================================================
+	my $path  = shift;
+	my $node  = shift;
+	my $k     = shift;
+	my $name  = shift || '';
+
+	local $_  = ref $node;
+        my $node_hold = $node;
+
+        $node_hold = lc($node_hold);
+
+	$name =~ s/^\s+|\s+$//g;
+	my $nameTrimmed = lc($name);
+	$name = $name ? " name=\"$name\"" : '';
+
+	if (!$_) {
+
+		if ($nameTrimmed eq "type") {
+			# Check for valid allowed types.
+			if ($node_hold ne "integer" &&
+				$node_hold ne "double" &&
+				$node_hold ne "text" &&
+				$node_hold ne "radio" &&
+				$node_hold ne "select" &&
+				$node_hold ne "checkbox") {
+				# The specified "type" is not allowed.
+				die "***error***$path. Invalid type ($node_hold).\n";
+			}
+		}
+		else {
+			if ($nameTrimmed ne "value" && $nameTrimmed ne "unit") {
+				# Parameter is not "type", "value", or "unit".
+				# Send warning.
+				print STDERR "***warning***$path. Potential issue with unknown term '$nameTrimmed'.\n";
+			}
+		}
+
+		return tab($k) .
+			"<div class=\"metadata field\"$name>$node_hold</div>\n";
+	}
+	if (/^SCALAR$/) {
+		return tab($k) .
+			"<div class=\"metadata field-ref\"$name>$$node</div>\n";
+	}
+	if (/^ARRAY$/) {
+		return tab($k) .
+			"<div class=\"metadata field-list\"$name>\n" . 
+			join("", map{
+				metadata2html($path, $_, ($k + 1));
+			} @$node ) .
+			tab($k) .
+			"</div>\n";
+	}
+	if (/^HASH$/) {
+		return tab($k) .
+			"<div class=\"metadata field-dict\"$name>\n" .
+			join("", map{
+				metadata2html($path, $node->{$_}, ($k + 1), $_);
+			} sort keys %$node) .
+			tab($k) .
+			"</div>\n";
+	}
+}
+
+

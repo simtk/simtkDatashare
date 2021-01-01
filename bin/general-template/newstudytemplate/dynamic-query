@@ -1,0 +1,59 @@
+#! /usr/bin/env node
+
+// dynamic-query
+// Usage: node dynamic-query [study template rules]
+// See README.md for more details.
+
+var fs = require('fs');
+var jsdom = require('/usr/lib/nodejs/npm/node_modules/jsdom');
+const {JSDOM} = jsdom;
+var $S = require('/usr/lib/nodejs/npm/node_modules/string');
+
+// Let string library extend String JS object prototypes.
+$S.extendPrototype();
+
+// LOAD THE STUDY TEMPLATE AND THE METADATA HTML TREE.
+var template = process.argv.length == 3 ? 
+	process.argv[ 2 ] : 
+	'/usr/local/mobilizeds/lib/general-template/study1.rules.js';
+var study = require(template);
+
+// DISCOVER THE METADATA FIELDS AND CREATE THE STUDY OBJECT FOR QUERYBUILDER.
+const jsdomOptions = {resources: 'usable', runScripts: 'dangerously'};
+JSDOM.fromFile("/usr/local/mobilizeds/data/metadata1.html", jsdomOptions).then(dom => {
+	var $ = require('/usr/lib/nodejs/npm/node_modules/jquery')(dom.window);
+	var rules = require('/usr/local/mobilizeds/lib/general-template/rules')($);
+	var dquery = study.dynamic_query($, rules);
+	var options = {
+		allow_empty: true,
+		plugins: {
+			'bt-checkbox' : {color : 'primary'},
+			'bt-selectpicker' : 'enable',
+			'bt-tooltip-errors' : {delay : 100},
+			'filter-description' : {mode : 'bootbox'},
+			'unique-filter' : 'enable',
+			'invert' : 'enable'
+		},
+		filters: dquery.filters,
+		units: dquery.units
+	};
+
+	var human_readable = '';
+	$.each(dquery.filters, (i, filter) => {
+		human_readable += filter.id + 
+			"\t" + 
+			filter.optgroup + 
+			" > " + 
+			filter.label + 
+			"\n";
+	});
+
+	fs.writeFileSync('study1-fields.js', 
+		"var options =\n" + 
+		JSON.stringify(options, null, 2) + 
+		"\n;\n");
+	fs.writeFileSync('study1.human-readable.fields', human_readable);
+});
+
+
+

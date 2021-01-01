@@ -1,0 +1,34 @@
+#! /usr/bin/env node
+
+// indexer
+// Usage: node indexer [study template rules]
+// See README.md for more details.
+
+var fs = require('fs');
+var jsdom = require('/usr/lib/nodejs/npm/node_modules/jsdom');
+const {JSDOM} = jsdom;
+var $S = require('/usr/lib/nodejs/npm/node_modules/string');
+
+// Let string library extend String JS object prototypes.
+$S.extendPrototype();
+
+// LOAD THE STUDY TEMPLATE AND THE METADATA HTML TREE.
+var template = process.argv.length == 3 ? 
+	process.argv[ 2 ] : 
+	'/usr/local/mobilizeds/lib/general-template/study1.rules.js';
+var study = require(template);
+
+// DISCOVER THE METADATA FIELDS AND CREATE THE STUDY INDEX.
+const options = {resources: 'usable', runScripts: 'dangerously'};
+JSDOM.fromFile("/usr/local/mobilizeds/data/metadata1.html", options).then(dom => {
+	var $ = require('/usr/lib/nodejs/npm/node_modules/jquery')(dom.window);
+	var rules = require('/usr/local/mobilizeds/lib/general-template/rules')($);
+	var index = study.indexer($, rules);
+	var nosql = index.map((entry, i) => {
+		return (i + 1) + 
+			"\t" + 
+			JSON.stringify(entry) + 
+			"\n";
+	}).join('');
+	fs.writeFileSync('study1.index.nosql', nosql);
+});

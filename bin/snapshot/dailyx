@@ -1,0 +1,33 @@
+#! /usr/bin/perl
+
+# ============================================================
+# Creates a new release of the study data
+# ============================================================
+# Intended to be run by crontab nightly. Produces a new
+# release when the data has changed.
+# ------------------------------------------------------------
+
+use lib qw( lib /usr/local/mobilizeds/lib );
+use Mobilize;
+use Mobilize::Study;
+use Getopt::Long;
+
+my $prefix = $Mobilize::Conf->{ prefix };
+#my $study  = $Mobilize::Conf->{ study }{ id };
+my $study  = "study10";
+my $policy = $Mobilize::Conf->{ cleanup }{ releases }{ keep };
+
+our $check = 0;
+GetOptions( "check|c" => \$check );
+
+for (my $study=1; $study <= 50; $study++) {
+
+  my $token =  "$prefix/data/$study.need-new-snapshot";
+
+  if( ! $check || -e $token ) {
+	my $study   = new Mobilize::Study( $study );
+	my $release = $study->release( $policy );
+	unlink $token;
+  }
+
+}

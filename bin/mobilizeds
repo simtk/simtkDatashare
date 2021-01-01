@@ -1,0 +1,229 @@
+#! /usr/bin/perl
+
+use lib qw( lib /usr/local/mobilizeds/lib );
+use Cwd qw( getcwd );
+use Mojolicious::Lite;
+use Try::Tiny;
+use JSON::XS;
+use Mobilize;
+use Mobilize::Users;
+use Mobilize::Mail;
+use PHP::Session;
+use URI::Escape;
+use Data::Dumper;
+
+our $json    = new JSON::XS()->canonical();
+our $install = "/usr/local/mobilizeds";
+our $log     = new Mojo::Log( path => "$install/mobilizeds.log", level => 'debug' );
+
+get '/status' => sub {
+	my $c = shift;
+	$c->render( text => 'MobilizeDS service is running.' );
+};
+
+# ===== HANDLE USER QUERY
+post '/query' => sub {
+	my $c = shift;
+	my $request = undef;
+	try { $request = $json->decode( $c->req->body ); } catch { $c->render( json => { error => $_ } ); };
+	my $session = check_authorization( $c, 'read', $request->{ session } ) or return;
+
+	try {
+		my $study   = new Mobilize::Study( $Mobilize::Conf->{ study }{ id }, $request );
+		my $results = $study->query();
+
+		$log->info( "Query submitted." );
+		$log->info( $json->encode( $session ));
+		$log->info( $json->encode( $request ));
+		
+		$c->render( json => $results );
+
+	} catch {
+		$c->render( json => { error => $_ });
+	};
+};
+
+# ===== HANDLE STUDY SUBDIRNAMES
+post '/getFileFilters' => sub {
+	my $c = shift;
+	my $request = undef;
+	try { $request = $json->decode( $c->req->body ); } catch { $c->render( json => { error => $_ } ); };
+	my $session = check_authorization( $c, 'read', $request->{ session } ) or return;
+
+	try {
+		my $study   = new Mobilize::Study( $Mobilize::Conf->{ study }{ id }, $request );
+		my $results = $study->getFileFilters();
+
+		$log->info( "getFileFilters." );
+		$log->info( $json->encode( $session ));
+		$log->info( $json->encode( $request ));
+		
+		$c->render( json => $results );
+
+	} catch {
+		$c->render( json => { error => $_ });
+	};
+};
+
+post '/setFileFilters' => sub {
+	my $c = shift;
+	my $request = undef;
+	try { $request = $json->decode( $c->req->body ); } catch { $c->render( json => { error => $_ } ); };
+	my $session = check_authorization( $c, 'read', $request->{ session } ) or return;
+
+	try {
+		my $study   = new Mobilize::Study( $Mobilize::Conf->{ study }{ id }, $request );
+		my $results = $study->setFileFilters();
+
+		$log->info( "setFileFilters." );
+		$log->info( $json->encode( $session ));
+		$log->info( $json->encode( $request ));
+		
+		$c->render( json => $results );
+
+	} catch {
+		$c->render( json => { error => $_ });
+	};
+};
+
+post '/insertStats' => sub {
+	my $c = shift;
+	my $request = undef;
+	try { $request = $json->decode( $c->req->body ); } catch { $c->render( json => { error => $_ } ); };
+	my $session = check_authorization( $c, 'read', $request->{ session } ) or return;
+
+	try {
+		my $study   = new Mobilize::Study( $Mobilize::Conf->{ study }{ id }, $request );
+		my $results = $study->insertStats();
+
+		$log->info( "insertStats." );
+		$log->info( $json->encode( $session ));
+		$log->info( $json->encode( $request ));
+		
+		$c->render( json => $results );
+
+	} catch {
+		$c->render( json => { error => $_ });
+	};
+};
+
+# ===== HANDLE USER DOWNLOAD
+post '/download' => sub {
+	my $c = shift;
+	my $request = undef;
+	try { $request = $json->decode( $c->req->body ); } catch { $c->render( json => { error => $_ } ); };
+	my $session = check_authorization( $c, 'read', $request->{ session } ) or return;
+
+	try {
+		my $study   = new Mobilize::Study( $Mobilize::Conf->{ study }{ id }, $request );
+		my $results = $request->{ results };
+		my $isGetAllSubjDirs = $request->{ isGetAllSubjDirs };
+		my $allFilesSubjs = $request->{ allFilesSubjs };
+		my $too_big = $request->{ summary }{ bytes } > (200 * 1024 * 1024); # > 200 MB
+		my $package = undef;
+		my $parent  = ($request->{user_email} ne "" && $too_big) ? fork() : 0;
+
+		# Parent fork returns AJAX response right away
+		if ( $parent ) {
+			$c->render( json => { summary => $request->{ summary }, results => $results, emailed => 1 });
+			return;
+
+		# Child fork or small download: package up the results and sends it
+		}
+		elsif( $parent == 0 ) { 
+			$package = $study->package( $results, $isGetAllSubjDirs, $allFilesSubjs);
+
+			$log->info( "Packaged query results sent." );
+			$log->info( $json->encode( $session ));
+			$log->info( $json->encode( $package ));
+
+			# Child fork sends the e-mail link when packaging is done
+			if ( $request->{user_email} ne "" && $too_big ) {
+				Mobilize::Mail::send_link( $session, $request, $package );
+				exit();
+			} 
+			else {
+				# Small downloads package quickly enough to send the results in real time
+				$c->render( json => { results => $results, package => $package } );
+			}
+
+		} else {
+			die "Could not create a non-blocking process to package query results: $!\n";
+		}
+		
+	} catch {
+		$c->render( json => { error => $_ });
+	};
+};
+
+# ===== HANDLE USER ADMINISTRATION
+# This code is for administrators to modify permissions; see html/user/*.php
+# for user-provided updates to their own account
+post '/users' => sub {
+	my $c     = shift;
+	my $users = new Mobilize::Users();
+	my $edit  = $c->req->body_params->param( 'edit' );
+
+	try {
+		if( defined $edit ) {
+			$log->info( "Editing user: $edit" );
+			$edit = $json->decode( $edit );
+			my $session = check_authorization( $c, 'admin' ) or die "Only administrators can update other users";
+			my $user    = $users->update( $edit );
+			delete $user->{ hashpass };
+
+			$log->info( "User updated." );
+			$log->info( $json->encode( $session ));
+			$log->info( $json->encode( $edit ));
+
+			# Send e-mail if account is approved
+			Mobilize::Mail::send_notification_approval( $session, $user ) if( $edit->{ approved });
+
+			$c->render( json => $user );
+
+		} else {
+			my $session = check_authorization( $c, 'admin' ) or die "Cannot request user list";
+			$log->info( "User list requested." );
+			$c->render( json => $users->sanitized_list() );
+		}
+	} catch {
+		$c->render( json => { error => $_ });
+	};
+};
+
+
+# ===== CATCH ALL OTHER COMMANDS
+any '*' => sub {
+	my $c = shift;
+	$c->render( json => { error => "Command '$_' not understood" } );
+};
+
+# ============================================================
+sub check_authorization {
+# ============================================================
+	my $c        = shift;
+	my $required = shift;
+	my $phpsid   = $c->req->body_params->param( 'mobilizeds' ) || shift;
+	my $session  = new PHP::Session( $phpsid, { save_path => "$install/tokens" });
+	$session     = $session->{ _data };
+
+	if( ! $session->{ is_auth } ) { $c->render( json => { error => 'Please log in.' } ); return 0; }
+	return $session if( exists $session->{ permissions }{ admin } ); # Admins can do anything
+	return $session if( $required eq 'none' );                       # No permission requirements for the given action
+
+	# Comment this out for now.  Need to revisit this requirement - Tod Hing
+	#if( ! exists $session->{ permissions }{ $required } ) { $c->render( json => { error => 'You need to request higher permissions from an admin.' } ); return 0; }
+	return $session;
+}
+
+app->config( hypnotoad => { listen => [ 'http://*:3042' ], pid_file => "$install/mobilizeds.pid", inactivity_timeout => 60 } );
+app->log( $log );
+app->start;
+
+__DATA__
+@@ not_found.html.ep
+<!DOCTYPE html>
+<html>
+  <head><title>Page not found</title></head>
+  <body>Page not found <%= $status %></body>
+</html>

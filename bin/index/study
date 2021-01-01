@@ -1,0 +1,59 @@
+#! /usr/bin/perl
+
+use lib qw( /usr/local/mobilizeds/lib );
+use Mobilize;
+
+#our $study         = $Mobilize::Conf->{ study }{ id };
+our $studyid       =  substr $ARGV[0], 33 , -6;
+my $idxEnd = rindex($$ARGV[0], "/");
+if ($idxEnd != -1) {
+        my $strFront = substr($ARGV[0], 0, $idxEnd);
+        $idxStart = rindex($strFront, "/");
+        if ($idxStart != -1) {
+                $studyid = substr($strFront, $idxStart + 6);
+        }
+}
+our $study         = "study$studyid";
+our $cache         = "$Mobilize::Conf->{ prefix }/data";
+our $path          = shift || "$Mobilize::Conf->{ data }{ docroot }/study/study$studyid/files";
+our $filter_file   = shift || "$Mobilize::Conf->{ apache }{ docroot }/include/js/study$studyid-fields.js";
+our $readable_file = shift || "$cache/study$studyid.human-readable.fields";
+our $index_file    = shift || "$cache/study$studyid.index.nosql";
+our $import_file   = "$cache/study$studyid.import.sql";
+our $parser        = "env perl $Mobilize::Conf->{ prefix }/bin/general-template/$study/parser";
+our $indexer       = "$Mobilize::Conf->{ node }{ interpreter } $Mobilize::Conf->{ prefix }/bin/general-template/$study/indexer";
+our $dynamic_query = "$Mobilize::Conf->{ node }{ interpreter } $Mobilize::Conf->{ prefix }/bin/general-template/$study/dynamic-query";
+
+system( "cd $cache && $parser $path > metadata$studyid.html" );
+system( "cd $cache && NODE_PATH=$Mobilize::Conf->{ node }{ path } $indexer" );
+system( "cd $cache && NODE_PATH=$Mobilize::Conf->{ node }{ path } $dynamic_query" );
+
+if( -e "$cache/study$studyid-fields.js" ) {
+	`mv $cache/study$studyid-fields.js $filter_file`;
+	`chown $Mobilize::Conf->{ apache }{ user } $import_file $filter_file $readable_file $index_file`;
+}
+
+import_index( $study, $cache );
+
+# ============================================================
+sub import_index {
+# ============================================================
+	my $study      = shift;
+	my $cache      = shift;
+	my $table      = "\"$study\".\"metadata\"";
+	my $constraint = $study . "_metadata_pkid";
+
+	my $import_sql =<<EOF;
+	create table if not exists $table ( id serial not null, json jsonb, constraint $constraint primary key (id));
+	alter table $table owner to postgres;
+	delete from $table;
+	copy $table from '$index_file';
+EOF
+
+	open FILE, ">$import_file" or die "Can't write to '$import_file' $!";
+	print FILE $import_sql;
+	close FILE;
+
+	my $command = "PGPASSWORD=$Mobilize::Conf->{ postgres }{ pass } $Mobilize::Conf->{ postgres }{ psql } -U $Mobilize::Conf->{ postgres }{ user } -d $Mobilize::Conf->{ postgres }{ db } -f $import_file 2>/dev/null";
+	system( $command );
+}

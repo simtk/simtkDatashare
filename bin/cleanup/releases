@@ -1,0 +1,16 @@
+#! /usr/bin/perl
+
+use lib qw( /usr/local/mobilizeds/lib );
+use Mobilize;
+
+my $expiration = $Mobilize::Conf->{ cleanup }{ releases }{ expire }; # days
+
+# ===== SELECT PATHS THAT WERE CREATED BEFORE EXPIRATION ABOVE
+my $path = "/home/mobilizeds/releases";
+
+foreach my $file (<$path/*.gz>) {    
+    if ( -M $file > $expiration ) {
+        print "\n Deleting the log file more than 2 days old: " . $file; 
+        unlink $file; #or die "\nFailed to remove $file: $!";
+    }
+}

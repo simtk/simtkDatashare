@@ -1,0 +1,21 @@
+#! /usr/bin/perl
+
+use lib qw( /usr/local/mobilizeds/lib );
+use Mobilize;
+
+my $expiration = $Mobilize::Conf->{ cleanup }{ downloads }{ expire }; # days
+
+# ===== SELECT PATHS THAT WERE CREATED BEFORE EXPIRATION ABOVE
+chdir "/home/mobilizeds/downloads";
+my @paths = 
+	map { s/\.\///; $_; }
+	split /\n/, 
+	`find . -maxdepth 1 -mtime +$expiration`;
+
+# ===== DELETE THE SELECTED PATHS
+foreach my $path (@paths) {
+	next if $path =~ /^\//;         # Avoid deleting root
+	next unless $path =~ /^\w{8}$/; # Delete only paths with names of exactly 8 characters
+	next unless -d $path;           # Delete only paths that exist
+	`rm -rf $path`;
+}
