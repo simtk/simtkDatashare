@@ -77,6 +77,7 @@ include_once("../../baseIncludes.php");
 				// Adjust only if width is greater than zero.
 				// During initial loading, this width may be negative. Ignore.
 				$(".panel-primary").width($(this).width() + 2);
+				$(".panel-primary").height($(this).height() + 40);
 			}
 		});
 
