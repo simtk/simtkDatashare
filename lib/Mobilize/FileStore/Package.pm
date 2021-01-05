@@ -71,7 +71,7 @@ sub send {
 	# ===== RECREATE ORIGINAL FILE STRUCTURE
 	foreach my $path (sort keys %{ $self->{ paths }}) {
 		my $fullpath = "$self->{ path }/$self->{ filename }/$path";
-		`mkdir -p $fullpath` unless -d $fullpath;
+		`mkdir -p '$fullpath'` unless -d $fullpath;
 	}
 
 	# Fill hash with subdirectories.
@@ -215,7 +215,7 @@ sub findMatchedDirs {
 ## @brief Find matching subdirectories.
 	my $self = shift;
 	my $allDirNames = shift;
-	my $strSubdirName = shift;
+	my $strSubDirName = shift;
 	my %mydirNames;
 
 	foreach my $fullPathName (@{ $allDirNames }) {
@@ -225,12 +225,12 @@ sub findMatchedDirs {
 		}
 
 		# Matched if full pathname ends with given subdirectory name.
-		my $strSearch = lc("/" . $strSubdirName);
+		my $strSearch = lc("/" . $strSubDirName);
 		my $idx = index(lc($fullPathName . "/"), $strSearch);
 		if ($idx != -1 &&
 			$idx == length($fullPathName . "/") - length($strSearch)) {
 			# Add to hash.
-			$mydirNames{$strSubdirName} = $fullPathName;
+			$mydirNames{$strSubDirName} = $fullPathName;
 		}
 	}
 
