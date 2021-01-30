@@ -39,21 +39,24 @@ SimTK DataShare uses Bootstrap v3.4.1 which is copyright 2011-2019 by Twitter, I
 2. BootboxJS
 SimTK DataShare uses BootboxJS v4.4.0 which is copyright 2011-2020 by Nick Payne <nick@kurai.co.uk> under the terms of the MIT license. A copy of this license may be found in the accompanying file "MIT.txt". 
 
-4. Bootstrap Select  
+3. Bootstrap Select  
 SimTK DataShare uses Bootstrap Select v1.10.0 which is copyright 2013-2016 by bootstrap-select under the terms of the MIT license. A copy of this license may be found in the accompanying file "MIT.txt". 
 
-5. jQuery
+4. jQuery
 SimTK DataShare uses jQuery v3.5.1 which is copyright by the JS Foundation under the terms of the MIT license. A copy of this license may be found in the accompanying file "MIT.txt". 
 
-6. jQuery Migrate
+5. jQuery Migrate
 SimTK DataShare uses jQuery Migrate v3.3.0 which is copyright by the OpenJS Foundation and other contributors under the terms of the MIT license. A copy of this license may be found in the accompanying file "MIT.txt". 
 
-7. jQuery UI
-SimTK DataShare uses jQuery UI v1.12.1 which is copyright by the jQuery Foundation under the terms of the MIT license. A copy of this license may be found in the accompanying file "MIT.txt". 
+6. jQuery UI and Smoothness theme
+SimTK DataShare uses jQuery UI v1.12.1 and its Smoothness theme (from v1.11.4), both of which are copyright by the jQuery Foundation under the terms of the MIT license. A copy of this license may be found in the accompanying file "MIT.txt". 
 
-8. QueryBuilder
+7. QueryBuilder
 SimTK DataShare uses QueryBuilder v2.5.2 which is copyright 2014-2018 by Damien Sorel under the terms of the MIT license. A copy of this license may be found in the accompanying file "MIT.txt". 
 
-9. Moment.js
-SimTK DataShare uses Moment.js v2.12.0 which is copyright 2011-2020 by Tim Wood, Iskren Chernev, Maggie Johnson-Pint, and PatrickJS under the terms of the MIT license. A copy of this license may be found in the accompanying file "MIT.txt". 
+8. Moment
+SimTK DataShare uses Moment.js v2.12.0 which is copyright by Tim Wood, Iskren Chernev, and Moment.js contributors under the terms of the MIT license. A copy of this license may be found in the accompanying file "MIT.txt". 
+
+
+
 
