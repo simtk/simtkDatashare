@@ -80,7 +80,7 @@ include_once("../../baseIncludes.php");
 
 	<br/>
 	<b>File Upload:</b><br/>
-	<p>Upload files by dragging and dropping them in the "Import and Edit Data" window below.  <b>Note: Filenames that start with a "." cannot be uploaded.</b>. SimTK will automatically expand files with the following suffixes: .zip, .tar.gz, .tar.</p>
+	<p>Upload files by dragging and dropping them in the "Import and Edit Data" window below.  <b>Note: Filenames that start with a "." cannot be uploaded.</b> SimTK will automatically expand files with the following suffixes: .zip, .tar.gz, .tar.</p>
 	<b>Enabling Query:</b><br/>
 	<p>To enable querying of your dataset, you need to <a style="color:#f75236;" href="metadata.php" target="_blank">provide metadata</a>. Metadata can be provided explicitly via a file or implicitly via your directory structure.</p><br/>
 	<div id="importStatus"></div>
