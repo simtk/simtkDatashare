@@ -4,7 +4,7 @@
  * http://elfinder.org
  * 
  * Copyright 2009-2020, Studio 42
- * Copyright 2005-2020, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  * Licensed under a 3-clauses BSD license
  */
 (function(root, factory) {
@@ -6186,7 +6186,7 @@ elFinder.prototype = {
 							var opts = {
 									cssClass : 'elfinder-confirm-upload',
 									title  : fm.i18n('cmdupload'),
-									text   : ['SimTK will automatically expand this upload. Files and folders in the expanded upload will overwrite matching files and folders already in the Data Share study.',
+									text   : ['SimTK will automatically expand this upload. If there are any files or folders in the expanded upload with the same name as existing files and folders, they will be overwritten.',
 										'Continue?', ''], 
 									accept : {
 										label    : 'btnYes',
