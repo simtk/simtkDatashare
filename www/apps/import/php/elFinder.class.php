@@ -8,6 +8,7 @@
  * @author Dmitry (dio) Levashov
  * @author Troex Nevelin
  * @author Alexey Sukhotin
+ * @author SimTK Team
  **/
 class elFinder {
 	
