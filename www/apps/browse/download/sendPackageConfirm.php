@@ -154,7 +154,7 @@ $(document).ready(function() {
 		$("#myBrowse").css("opacity", 0.5);
 
 		// Show packaging message.
-		$(".msgDownload").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>Getting data….please wait. Do not navigate away from this page until data retrieval is complete.</b></div>');
+		$(".msgDownload").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>Preparing data. Please wait: Do not navigate away from this page until data retrieval is complete.</b></div>');
 		$(".msgDownload")[0].scrollIntoView(false);
 
 		// Generate package and get URL.
@@ -257,7 +257,7 @@ $(document).ready(function() {
 	$("#myBrowse").css("opacity", 0.5);
 
 	// Show packaging message.
-	$(".msgDownload").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>Getting data….please wait. Do not navigate away from this page until data retrieval is complete.</b></div>');
+	$(".msgDownload").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>Preparing data. Please wait: Do not navigate away from this page until data retrieval is complete.</b></div>');
 	$(".msgDownload")[0].scrollIntoView(false);
 
 	// Generate package and get URL.

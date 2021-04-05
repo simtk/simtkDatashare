@@ -36,6 +36,9 @@
 	if (isset($_REQUEST['templateid'])) {
 		$templateid = $_REQUEST['templateid'];
 	}
+	if (isset($_REQUEST['pathSelected'])) {
+		$pathSelected = $_REQUEST['pathSelected'];
+	}
 	if (isset($_SESSION['userid'])) {
 		$userid = $_SESSION['userid'];
 	}
@@ -111,7 +114,7 @@ include_once("../../baseIncludes.php");
 </script>
 
 <?php
-	$directory = '/usr/local/mobilizeds/study/study' . $studyid . '/files';
+	$directory = $conf->data->docroot . "/study/study" . $studyid . '/files';
 	if (count(glob("$directory/*")) === 0) {
 		$data = 0;
 	}
@@ -128,6 +131,7 @@ include_once("../../baseIncludes.php");
 <?php $relative_url = "../../"; include( $relative_url . "banner.php" ); ?>
 
 	<br/><br/>
+
 <?php if (!$data): ?>
 	<!-- Data Status -->
 	<div><p><br /><b>* This study currently has no data to browse.</b></p></div>
@@ -222,6 +226,59 @@ endif;
 
 </div>
 
+<?php
+
+$fileSelected = false;
+$thePathHash = false;
+$numFilesInDir = false;
+
+// Check if a selected path to show is specified.
+if (isset($pathSelected) && $pathSelected != false && trim($pathSelected) != "") {
+
+	// Default volume.
+	$volumeId = "l1_";
+
+	// Generate full path of start directory.
+	$pathBase = $conf->data->docroot . "/study/study" . $studyid . "/";
+	$pathSelected = trim($pathSelected);
+	$fullPath = $pathBase . $pathSelected;
+	$dirPath = $fullPath;
+
+	// Check for directory/file existence first.
+	if (file_exists($fullPath)) {
+		if (is_dir($fullPath)) {
+			// Directory.
+			// Remove any trailing "/".
+			if (stripos(strrev($fullPath), "/") === 0) {
+				$dirPath = substr($fullPath, 0, strlen($fullPath) - 1);
+			}
+		}
+		else {
+			// File.
+			// Include only up to the last directory, because
+			// elfinder start directory can only handle directory,
+			// but not a file.
+			$idxLast = strripos($fullPath, "/");
+			if ($idxLast !== false) {
+				// Get name of selected file.
+				$fileSelected = substr($fullPath, $idxLast + 1);
+
+				// Get full path of the directory.
+				$dirPath = substr($fullPath, 0, $idxLast);
+
+				// Find the number of files in the specified directory.
+				$theFiles = scandir($dirPath);
+				// Exclude "." and "..".
+				$numFilesInDir = count($theFiles) - 2;
+			}
+		}
+
+		// Generate start path hash from the start directory for elfinder.
+		$thePathHash = $volumeId . rtrim(strtr(base64_encode($dirPath), '+/=', '-_.'), '.');
+	}
+}
+?>
+
 <script>
 	$("#get-all-button").click(function() {
 		var userId = '<?php echo $_SESSION["userid"]; ?>';
@@ -270,8 +327,9 @@ endif;
 		parent.postMessage({event_id: "DownloadFinished"}, "*");
 	});
 
+
 	// ===== INITIALIZE FILETREE AND BUILDER COMPONENTS
-	$( '#elfinder' ).elfinder({
+	var fm = $( '#elfinder' ).elfinder({
 		url: '../import/php/connector.mobilizeds.readonly.php?' +
 			'study=<?php echo $studyid; ?>&' +
 			'templateid=<?php echo $templateid; ?>&' +
@@ -287,13 +345,69 @@ endif;
 			'firstname=<?php echo $_SESSION["firstname"]; ?>&' +
 			'lastname=<?php echo $_SESSION["lastname"]; ?>',
 
+		// Send SimTK server name to elfinder as parameter in options.
+		simtkServer: "<?php echo $domain_name; ?>",
+
+<?php
+if ($thePathHash !== false) {
+?>
+		// Send start path hash to elfinder as parameter in options.
+		startPathHash: "<?php echo $thePathHash; ?>",
+<?php
+}
+?>
+
+<?php
+if ($numFilesInDir !== false && $numFilesInDir > 0) {
+?>
+		// If a file is specifed, ensure that the file is shown by
+		// updating number of files to show in elFinder first, because
+		// elFinder uses lazy loading and displays a default of 50 files.
+		// Files beyond the first 50 files are not shown unless
+		// the panel is vertically scrolled down by the user.
+		showFiles: "<?php echo $numFilesInDir; ?>",
+<?php
+}
+?>
 		contextmenu : {
 			// current directory menu
 			cwd    : ['reload', 'back', '|', 'upload', 'mkdir', 'mkfile', 'paste', '|', 'info'],
 			// current directory file menu
 			files  : ['link', '|', 'getfile', '|', 'quicklook', '|', 'download', '|', '|', 'info']
 		}
+	}).elfinder("instance");
+
+<?php
+if ($fileSelected !== false) {
+?>
+	// File has been specified.
+	// Scroll to file and highlight it.
+	fm.one("cwdrender", function() {
+		// Try to locate element with icon view first.
+		var theSelector = $("div[title='" + "<?php echo $fileSelected; ?>" + "']");
+		if (theSelector.length == 0) {
+			// Cannot locate element with icon view; try list view.
+			theSelector = $("span").filter(function() {
+				return $(this).text() == '<?php echo $fileSelected; ?>';
+			});
+		}
+		if (theSelector.length > 0) {
+
+			// Get offset and animate scroll to the component first.
+			// Otherwise, the component is sometimes shown in the
+			// scroll height interval above.
+			var compCwd = $(".elfinder-cwd-wrapper");
+			compCwd.animate({scrollTop: theSelector.offset().top}, 0);
+
+			// Found element.
+			// Select element.
+			// NOTE: Click element also to show the complete dropdown menu items.
+			theSelector.trigger('scrolltoview').trigger("select").click();
+		}
 	});
+<?php
+}
+?>
 
 </script>
 </body>
