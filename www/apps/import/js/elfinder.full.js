@@ -8011,7 +8011,25 @@ elFinder.prototype = {
 	 * @return String
 	 */
 	startDir : function() {
-		var locHash = window.location.hash;
+
+		// SimTK NOTE: If this.options.startPathHash is defined, use
+		// the parameter; this option has precedence.
+		if (this.options.startPathHash) {
+			return this.options.startPathHash;
+		}
+		else {
+			// Check availability of lochash from browser.
+			if (typeof lochash !== 'undefined' &&
+				locHash && locHash.match(/^#elf_/)) {
+				return locHash.replace(/^#elf_/, '');
+			}
+			else {
+				return this.lastDir();
+			}
+		}
+
+/*
+		// OLD.
 		if (locHash && locHash.match(/^#elf_/)) {
 			return locHash.replace(/^#elf_/, '');
 		} else if (this.options.startPathHash) {
@@ -8019,8 +8037,9 @@ elFinder.prototype = {
 		} else {
 			return this.lastDir();
 		}
+*/
 	},
-	
+
 	/**
 	 * Get/set last opened directory
 	 * 
@@ -14201,7 +14220,7 @@ if (typeof elFinder === 'function' && elFinder.prototype.i18) {
 			'items'           : 'Items',
 			'yes'             : 'yes',
 			'no'              : 'no',
-			'link'            : 'Link',
+			'link'            : 'Link to download', // SimTK NOTE: Updated hint.
 			'searcresult'     : 'Search results',
 			'selected'        : 'selected items',
 			'about'           : 'About',
@@ -23992,6 +24011,7 @@ elFinder.prototype.commands.download = function() {
 		link = $('<a>').hide().appendTo('body');
 		html5dl = (typeof link.get(0).download === 'string');
 		
+		// SimTK NOTE: Changed zip download handling.
 		if (zipOn && (fileCnt !== files.length || fileCnt >= (this.options.minFilesZipdl || 1))) {
 			link.remove();
 			linkdl = (!html5dl && fm.UA.Mobile);
@@ -24011,11 +24031,28 @@ elFinder.prototype.commands.download = function() {
 			} else {
 				targets = [ $.map(files, function(f) { return f.hash; }) ];
 			}
+
+			// SimTK NOTE: Changed to launch the URL as specified.
+			// Get URL from the first file.
+			var myLink = files[0].url || fm.url(files[0].hash);
+			// Set up invocation.
+			myLink = myLink.replace("sendDownloadConfirm.php", "sendZipDownloadConfirm.php");
+			// Stringify files hash array and URL-encode string to send with invocation.
+			window.location.href = myLink + "&filesHash=" +
+				encodeURIComponent(JSON.stringify(targets));
+
+			/*
+			// SimTK NOTE: Comment out this section to disable default download click action
+			// in the Download menu item that handles multiple files and directory
+			// downloading which generates a zip file and then downloads
+			// the zip file using the browser download.
 			dfrd = fm.sequence($.map(targets, function(t) { return getTask(t); })).always(
 				function() {
 					fm.trigger('download', {files : files});
 				}
 			);
+			*/
+
 			return dfrd;
 		}
 		else {
@@ -26788,11 +26825,36 @@ elFinder.prototype.commands.hide = function() {
 			//!hideItems.size && content.push(row.replace(l, msg.size).replace(v, size));
 
 			!hideItems.aleasfor && file.alias && content.push(row.replace(l, msg.aliasfor).replace(v, file.alias));
-			// SimTK NOTE: Generate path variable of current selected directory.
+
+			// SimTK NOTE: Generate URL for selected directory/file.
+			var simtkServer = fm.options.simtkServer;
+			var studyId = $("form[name=form-browse] input:hidden[name=studyid]").val();
+			var groupId = $("form[name=form-browse] input:hidden[name=groupid]").val();
+			var urlSimtk = "https://" + simtkServer +
+				"/plugins/datashare/userLogin.php?" +
+				"groupid=" + groupId +
+				"&studyid=" + studyId +
+				"&pathSelected=";
+			// Message for copying link to directory/file.
+			var msgCopyLink = (file.mime === 'directory') ?
+				"Copy link to directory" :
+				"Copy link to file";
+
 			if (!hideItems.path) {
 				if (path = fm.path(file.hash, true)) {
 					content.push(row.replace(l, msg.path).replace(v, applyZWSP(fm.escape(path))).replace('{class}', 'elfinder-info-path'));
-				} else {
+
+					// SimTK NOTE: Add "URL" entry for directory/file.
+					content.push(row.replace(l, "URL").replace(v,
+						'<a ' +
+						'title="right click and copy link"' +
+						'href="' +
+						applyZWSP(fm.escape(urlSimtk + path)) +
+						'">' +
+						msgCopyLink +
+						'</a>').replace('{class}', 'elfinder-info-path'));
+				}
+				else {
 					content.push(row.replace(l, msg.path).replace(v, tpl.spinner.replace('{text}', msg.calc).replace('{name}', 'path')).replace('{class}', 'elfinder-info-path'));
 					reqs.push(fm.path(file.hash, true, {notify: null})
 					.fail(function() {
@@ -26800,6 +26862,16 @@ elFinder.prototype.commands.hide = function() {
 					})
 					.done(function(path) {
 						replSpinner(applyZWSP(path), 'path');
+
+						// SimTK NOTE: Add "URL" entry for directory/file.
+						content.push(row.replace(l, "URL").replace(v,
+							'<a ' +
+							'title="right click and copy link"' +
+							'href="' +
+							applyZWSP(fm.escape(urlSimtk + path)) +
+							'">' +
+							msgCopyLink +
+							'</a>').replace('{class}', 'elfinder-info-path'));
 					}));
 				}
 

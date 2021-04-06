@@ -130,8 +130,8 @@ if ($_REQUEST['userid'] == 0) {
 // Documentation for connector options:
 // https://github.com/Studio-42/elFinder/wiki/Connector-configuration-options
 $opts = array(
-	// Only allow single selection.
-	'maxTargets' => 1,
+	// SimTK NOTE: Allowing multiple file selections.
+	//'maxTargets' => 1, // Only allow single selection.
 
 	// 'debug' => true,
 	'roots' => array(
@@ -141,8 +141,10 @@ $opts = array(
 			'path'          => $conf->data->docroot . '/study/study'.$_REQUEST['study'].'/files/', // path to files (REQUIRED)
 			// Set up URL for download of file.
 			'URL'		=> $theURL,
-			// Disable download of directory with zip.
-			'disabled'     => array('zipdl'),
+
+			// SimTK NOTE: Allowed zip creation from multiple files are selected.
+			//'disabled'     => array('zipdl'), // Disable download of directory with zip.
+
 			'trashHash'     => 't1_Lw',                     // elFinder's hash of trash folder
 			'winHashFix'    => DIRECTORY_SEPARATOR !== '/', // to make hash same to Linux one on windows too
 			'uploadDeny'    => array('all'),                // All Mimetypes not allowed to upload

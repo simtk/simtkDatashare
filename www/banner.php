@@ -37,6 +37,20 @@ else {
 	$nameDownload = "";
 }
 
+if (isset($_REQUEST['filesHash']) && trim($_REQUEST['filesHash']) != "") {
+	$strFilesHash = trim($_REQUEST['filesHash']);
+}
+else {
+	$strFilesHash = "";
+}
+
+if (isset($_REQUEST['pathSelected']) && trim($_REQUEST['pathSelected']) != "") {
+	$pathSelected = trim($_REQUEST['pathSelected']);
+}
+else {
+	$pathSelected = "";
+}
+
 if (isset($_REQUEST['namePackage']) && trim($_REQUEST['namePackage']) != "") {
 	$namePackage = trim($_REQUEST['namePackage']);
 }
@@ -72,6 +86,9 @@ if (isset($_SESSION["section"]) &&
 if ($nameDownload != "") {
 	$urlSendFileParams .= "&nameDownload=" . $nameDownload;
 }
+if ($strFilesHash != "") {
+	$urlSendFileParams .= "&filesHash=" . urlencode($strFilesHash);
+}
 if ($namePackage != "") {
 	$urlSendFileParams .= "&namePackage=" . $namePackage;
 }
@@ -91,6 +108,7 @@ if ($namePackage != "") {
 				<input type="hidden" name="templateid" value="<?= $templateid ?>">
 				<input type="hidden" name="userid" value="<?= $userid ?>">
 				<input type="hidden" name="email" value="<?= $email ?>">
+				<input type="hidden" name="pathSelected" value="<?= $pathSelected ?>">
 			</form>
 			<form name="form-search" action="<?= $relative_url ?>apps/query/" method="get">
 				<input type="hidden" name="studyid" value="<?= $studyid ?>">
@@ -103,21 +121,22 @@ if ($namePackage != "") {
 			</form>
 			<form name="form-import" action="<?= $relative_url ?>apps/import/" method="get">
 				<input type="hidden" name="studyid" value="<?= $studyid ?>">    
-				 <input type="hidden" name="groupid" value="<?= $groupid ?>">
-				 <input type="hidden" name="perm" value="<?= $perm ?>">
-				 <input type="hidden" name="download" value="<?= $download ?>">
-				 <input type="hidden" name="templateid" value="<?= $templateid ?>">
-				 <input type="hidden" name="userid" value="<?= $userid ?>">
-				 <input type="hidden" name="email" value="<?= $email ?>">
+				<input type="hidden" name="groupid" value="<?= $groupid ?>">
+				<input type="hidden" name="perm" value="<?= $perm ?>">
+				<input type="hidden" name="download" value="<?= $download ?>">
+				<input type="hidden" name="templateid" value="<?= $templateid ?>">
+				<input type="hidden" name="userid" value="<?= $userid ?>">
+				<input type="hidden" name="email" value="<?= $email ?>">
+				<input type="hidden" name="pathSelected" value="<?= $pathSelected ?>">
 			</form>
 			<form name="form-filefilter" action="<?= $relative_url ?>apps/filefilter/" method="get">
 				<input type="hidden" name="studyid" value="<?= $studyid ?>">    
-				 <input type="hidden" name="groupid" value="<?= $groupid ?>">
-				 <input type="hidden" name="perm" value="<?= $perm ?>">
-				 <input type="hidden" name="download" value="<?= $download ?>">
-				 <input type="hidden" name="templateid" value="<?= $templateid ?>">
-				 <input type="hidden" name="userid" value="<?= $userid ?>">
-				 <input type="hidden" name="email" value="<?= $email ?>">
+				<input type="hidden" name="groupid" value="<?= $groupid ?>">
+				<input type="hidden" name="perm" value="<?= $perm ?>">
+				<input type="hidden" name="download" value="<?= $download ?>">
+				<input type="hidden" name="templateid" value="<?= $templateid ?>">
+				<input type="hidden" name="userid" value="<?= $userid ?>">
+				<input type="hidden" name="email" value="<?= $email ?>">
 			</form>
 
 <?php if ($typeConfirm == 0): ?>
@@ -168,7 +187,20 @@ if ($namePackage != "") {
 			return;
 		}
 		else if (typeConfirm == 3) {
-			theURL = "/apps/browse/download/sendDownloadConfirm.php?";
+<?php
+			if (isset($_REQUEST["filesHash"]) &&
+				trim($_REQUEST["filesHash"]) != "") {
+?>
+				// Set up Zip download for files hash.
+				theURL = "/apps/browse/download/sendZipDownloadConfirm.php?";
+<?php
+			}
+			else {
+?>
+				theURL = "/apps/browse/download/sendDownloadConfirm.php?";
+<?php
+			}
+?>
 		}
 		else if ("<?php echo trim($namePackage); ?>" != "") {
 			theURL = "/apps/browse/download/sendPackageEmailed.php?";

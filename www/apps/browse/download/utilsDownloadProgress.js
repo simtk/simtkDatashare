@@ -23,7 +23,7 @@ function trackDownloadProgress(divDownload,
 	$("#" + divBrowse).css("opacity", 0.5);
 
 	// Show download started message.
-	$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>Downloading file... Please wait. Do not navigate away from this page until the download is complete.</b></div>');
+	$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>Preparing file. Please wait: Do not navigate away from this page until the download is complete.</b></div>');
 	$("." + divDownload)[0].scrollIntoView(false);
 
 	// Start tracking download progress.
@@ -53,9 +53,25 @@ function getDownloadStatus(divDownload,
 		// Get completion status.
 		statusCompletion = statusCompletion.trim();
 
-		if (statusCompletion != "done") {
-			// Not finished yet. Update message with download progress.
-			$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>Downloading file... (' + statusCompletion + ')  Do not navigate away from this page until the download is complete.</b></div>');
+		if (statusCompletion == "done") {
+			// Done. Update UI.
+			$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Downloaded file</b></div>');
+
+			$("#" + divBrowse).prop("disabled", false);
+			$("#" + divBrowse).css("opacity", 1.0);
+		}
+		else if (statusCompletion.startsWith("preparing")) {
+			// Still preparing file.
+			if (statusCompletion == "preparing") {
+				$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>Preparing file. Please wait: Do not navigate away from this page until the download is complete.</b></div>');
+			}
+			else {
+				var idx = statusCompletion.indexOf("preparing ");
+				if (idx != -1) {
+					var percentComplete = statusCompletion.substr(idx + 9);
+					$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>Preparing file' + percentComplete + '. Please wait: Do not navigate away from this page until the download is complete.</b></div>');
+				}
+			}
 
 			// Continue tracking download progress.
 			setTimeout(getDownloadStatus,
@@ -65,11 +81,15 @@ function getDownloadStatus(divDownload,
 				filenameDownloadProgress);
 		}
 		else {
-			// Done. Update UI.
-			$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Downloaded file</b></div>');
+			// Not finished yet. Update message with download progress.
+			$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>Downloading file (' + statusCompletion + '). Please wait: Do not navigate away from this page until the download is complete.</b></div>');
 
-			$("#" + divBrowse).prop("disabled", false);
-			$("#" + divBrowse).css("opacity", 1.0);
+			// Continue tracking download progress.
+			setTimeout(getDownloadStatus,
+				3000,
+				divDownload,
+				divBrowse,
+				filenameDownloadProgress);
 		}
 	}).fail(function() {
 		console.log("Error retrieving download status");

@@ -55,7 +55,7 @@
 	else {
 		$lastname = false;
 	}
-	if (isset($_REQUEST['lastname']) && $_REQUEST['studyid']) {
+	if (isset($_REQUEST['studyid']) && $_REQUEST['studyid']) {
 		$studyid = $_REQUEST['studyid'];
 	}
 	else {
@@ -85,6 +85,12 @@
 	}
 	else {
 		$member = false;
+	}
+	if (isset($_REQUEST['pathSelected']) && $_REQUEST['pathSelected']) {
+		$pathSelected = $_REQUEST['pathSelected'];
+	}
+	else {
+		$pathSelected = false;
 	}
 
 /*
@@ -345,6 +351,7 @@
 	$_SESSION['group_name'] = $group_name;
 	$_SESSION['group_id'] = $group_id;
 	$_SESSION['study_id'] = $studyid;
+	$_SESSION['pathSelected'] = $pathSelected;
 	if (isset($isDOI)) {
 		$_SESSION['isDOI'] = $isDOI;
 	}
