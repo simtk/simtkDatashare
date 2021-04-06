@@ -8012,7 +8012,7 @@ elFinder.prototype = {
 	 */
 	startDir : function() {
 
-		// NOTE: If this.options.startPathHash is defined, use
+		// SimTK NOTE: If this.options.startPathHash is defined, use
 		// the parameter; this option has precedence.
 		if (this.options.startPathHash) {
 			return this.options.startPathHash;
@@ -14220,7 +14220,7 @@ if (typeof elFinder === 'function' && elFinder.prototype.i18) {
 			'items'           : 'Items',
 			'yes'             : 'yes',
 			'no'              : 'no',
-			'link'            : 'Link to download',
+			'link'            : 'Link to download', // SimTK NOTE: Updated hint.
 			'searcresult'     : 'Search results',
 			'selected'        : 'selected items',
 			'about'           : 'About',
@@ -23724,7 +23724,7 @@ elFinder.prototype.commands.download = function() {
 		}
 		cnt = filter(sel).length;
 		
-		return  (cnt && (zipOn || (cnt <= maxReq && ((!fm.UA.IE && !fm.UA.Mobile) || cnt == 2))) ? 0 : -1);
+		return  (cnt && (zipOn || (cnt <= maxReq && ((!fm.UA.IE && !fm.UA.Mobile) || cnt == 1))) ? 0 : -1);
 	};
 	
 	fm.bind('contextmenu', function(e){
