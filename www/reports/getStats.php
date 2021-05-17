@@ -51,7 +51,7 @@ if ($_REQUEST['apikey'] == "$apikey" &&
 
 	date_default_timezone_set('America/Los_Angeles');
 
-	$studyid = $_REQUEST['studyid'];
+	$studyid = (int) $_REQUEST['studyid'];
 	$typeId = 0;
 	if (isset($_REQUEST['typeid'])) {
 		$typeId = (int) $_REQUEST['typeid'];

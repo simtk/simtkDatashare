@@ -33,7 +33,7 @@ if (!$perm || $studyId == 0) {
 // Get token filename for keeping tracking of download progress.
 $tokenDownloadProgress = false;
 if (isset($_REQUEST["tokenDownloadProgress"])) {
-	$tokenDownloadProgress = $_REQUEST["tokenDownloadProgress"];
+	$tokenDownloadProgress = htmlspecialchars($_REQUEST["tokenDownloadProgress"]);
 }
 
 // Get configuration parameters.

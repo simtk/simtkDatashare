@@ -132,17 +132,17 @@ function logStats($arrDbConf, $fileName, $fileSize, $typeId) {
 
 	date_default_timezone_set('America/Los_Angeles');
 
-	$studyId = $_REQUEST['studyid'];
-	$groupId = $_REQUEST['groupid'];
+	$studyId = (int) $_REQUEST['studyid'];
+	$groupId = (int) $_REQUEST['groupid'];
 	if (isset($_REQUEST['userid']) &&
 		trim($_REQUEST['userid']) != "") {
-		$userId = $_REQUEST['userid'];
+		$userId = (int) $_REQUEST['userid'];
 	}
 	else {
 		// User not logged in.
 		$userId = -1;
 	}
-	$agreement = $_REQUEST['agreement'];
+	$agreement = htmlspecialchars($_REQUEST['agreement']);
 
 	$strInsert = "INSERT INTO statistics " .
 		"(studyid, groupid, userid, email, typeid, info, dateentered, bytes, agreement) " .
