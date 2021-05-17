@@ -63,7 +63,15 @@ foreach ($_REQUEST as $k=>$v) {
 	if ($k == "custData") {
 		continue;
 	}
-	$theURL .= $k . "=" . $v . "&";
+	if ($k == "token") {
+		if (preg_match('/^[a-z$.\/0-9]/i', $v)) {
+			// Valid token.
+			$theURL .= "token=" . $v . "&";
+		}
+	}
+	else {
+		$theURL .= htmlspecialchars($k) . "=" . htmlspecialchars($v) . "&";
+	}
 }
 
 

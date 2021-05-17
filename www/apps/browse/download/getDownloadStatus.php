@@ -13,7 +13,7 @@
 // Get token filename for file that keeps track of download progress. 
 $tokenDownloadProgress = false;
 if (isset($_REQUEST["tokenDownloadProgress"])) {
-	$tokenDownloadProgress = $_REQUEST["tokenDownloadProgress"];
+	$tokenDownloadProgress = htmlspecialchars($_REQUEST["tokenDownloadProgress"]);
 }
 
 if ($tokenDownloadProgress === false) {

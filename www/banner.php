@@ -24,14 +24,14 @@
 
 // Get type of download confirmation and parameters, if any.
 if (isset($_REQUEST['typeConfirm']) && $_REQUEST['typeConfirm']) {
-	$typeConfirm = $_REQUEST['typeConfirm'];
+	$typeConfirm = (int) $_REQUEST['typeConfirm'];
 }
 else {
 	$typeConfirm = 0;
 }
 
 if (isset($_REQUEST['nameDownload']) && trim($_REQUEST['nameDownload']) != "") {
-	$nameDownload = trim($_REQUEST['nameDownload']);
+	$nameDownload = htmlspecialchars(trim($_REQUEST['nameDownload']));
 }
 else {
 	$nameDownload = "";
@@ -45,14 +45,14 @@ else {
 }
 
 if (isset($_REQUEST['pathSelected']) && trim($_REQUEST['pathSelected']) != "") {
-	$pathSelected = trim($_REQUEST['pathSelected']);
+	$pathSelected = htmlspecialchars(trim($_REQUEST['pathSelected']));
 }
 else {
 	$pathSelected = "";
 }
 
 if (isset($_REQUEST['namePackage']) && trim($_REQUEST['namePackage']) != "") {
-	$namePackage = trim($_REQUEST['namePackage']);
+	$namePackage = htmlspecialchars(trim($_REQUEST['namePackage']));
 }
 else {
 	$namePackage = "";

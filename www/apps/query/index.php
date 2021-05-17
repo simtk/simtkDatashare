@@ -20,16 +20,16 @@
 	$perm = 0;
 	$download = 0;
 	if (isset($_REQUEST['studyid'])) {
-		$studyid = $_REQUEST['studyid'];
+		$studyid = (int) $_REQUEST['studyid'];
 	}
 	if (isset($_REQUEST['groupid'])) {
-		$groupid = $_REQUEST['groupid'];
+		$groupid = (int) $_REQUEST['groupid'];
 	}
 	if (isset($_REQUEST['perm'])) {
-		$perm = $_REQUEST['perm'];
+		$perm = (int) $_REQUEST['perm'];
 	}
 	if (isset($_REQUEST['download'])) {
-		$download = $_REQUEST['download'];
+		$download = (int) $_REQUEST['download'];
 	}
 	if (isset($_SESSION['email'])) {
 		$email = $_SESSION['email'];
@@ -38,13 +38,13 @@
 		$userid = $_SESSION['userid'];
 	}
 	if (isset($_REQUEST['templateid'])) {
-		$templateid = $_REQUEST['templateid'];
+		$templateid = (int) $_REQUEST['templateid'];
 	}
 	if (isset($_SESSION['subject_prefix']) && $_SESSION['subject_prefix'] != false) {
 		$subject_prefix = $_SESSION['subject_prefix'];
 	}
 	else if (isset($_REQUEST['subject_prefix']) && $_REQUEST['subject_prefix'] != false) {
-		$subject_prefix = $_REQUEST['subject_prefix'];
+		$subject_prefix = htmlspecialchars($_REQUEST['subject_prefix']);
 	}
 	else {
 		$subject_prefix = "unknown";
@@ -496,8 +496,8 @@ $(document).ready(function() {
 							userid:     '<?= $userid ?>',
 							studyid:     '<?= $studyid ?>',
 							groupid:     '<?= $_SESSION['group_id']; ?>',
-							firstname:     '<?php echo str_replace("'", "%27", $_SESSION['firstname']); ?>',
-							lastname:     '<?php echo str_replace("'", "%27", $_SESSION['lastname']); ?>',
+							firstname:     '<?php echo urlencode($_SESSION['firstname']); ?>',
+							lastname:     '<?php echo urlencode($_SESSION['lastname']); ?>',
 							email:       '<?= $email; ?>',
 							typeid:      '1',
 							paramslist:  paramsExtracted,
@@ -1084,8 +1084,8 @@ function downloadHandler(request, request_stats) {
 			"&token=" . $_SESSION["token"] .
 			"&private=" . $_SESSION["private"] .
 			"&member=" . $_SESSION["member"] .
-			"&firstname=" . $_SESSION["firstname"] .
-			"&lastname=" . $_SESSION["lastname"];
+			"&firstname=" . urlencode($_SESSION["firstname"]) .
+			"&lastname=" . urlencode($_SESSION["lastname"]);
 	}
 ?>
 

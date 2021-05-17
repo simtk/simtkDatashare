@@ -16,78 +16,81 @@
 
 	// ======
 	if (isset($_REQUEST['groupid']) && $_REQUEST['groupid']) {
-		$groupid = $_REQUEST['groupid'];
+		$groupid = (int) $_REQUEST['groupid'];
 	}
 	else {
 		$groupid = false;
 	}
 	if (isset($_REQUEST['section']) && $_REQUEST['section']) {
-		$section = $_REQUEST['section'];
+		$section = htmlspecialchars($_REQUEST['section']);
 	}
 	else {
 		$section = false;
 	}
 	if (isset($_REQUEST['userid']) && $_REQUEST['userid']) {
-		$userid = $_REQUEST['userid'];
+		$userid = (int) $_REQUEST['userid'];
 	}
 	else {
 		$userid = false;
 	}
 	if (isset($_REQUEST['token']) && $_REQUEST['token']) {
-		$token = $_REQUEST['token'];
+		$token = htmlspecialchars($_REQUEST['token']);
+	}
+	else if (isset($_SESSION['token']) && $_SESSION['token']) {
+		$token = htmlspecialchars($_SESSION['token']);
 	}
 	else {
 		$token = false;
 	}
 	$private = 0;
 	if (isset($_REQUEST['private']) && $_REQUEST['private']) {
-		$private = $_REQUEST['private'];
+		$private = (int) $_REQUEST['private'];
 	}
 	if (isset($_REQUEST['firstname']) && $_REQUEST['firstname']) {
-		$firstname = $_REQUEST['firstname'];
+		$firstname = htmlspecialchars($_REQUEST['firstname']);
 	}
 	else {
 		$firstname = false;
 	}
 	if (isset($_REQUEST['lastname']) && $_REQUEST['lastname']) {
-		$lastname = $_REQUEST['lastname'];
+		$lastname = htmlspecialchars($_REQUEST['lastname']);
 	}
 	else {
 		$lastname = false;
 	}
 	if (isset($_REQUEST['studyid']) && $_REQUEST['studyid']) {
-		$studyid = $_REQUEST['studyid'];
+		$studyid = (int) $_REQUEST['studyid'];
 	}
 	else {
 		$studyid = false;
 	}
 	if (isset($_REQUEST['isDOI']) && $_REQUEST['isDOI']) {
-		$isDOI = $_REQUEST['isDOI'];
+		$isDOI = (int) $_REQUEST['isDOI'];
 	}
 	else {
 		$isDOI = false;
 	}
 	if (isset($_REQUEST['doi_identifier']) && $_REQUEST['doi_identifier']) {
-		$doi_identifier = $_REQUEST['doi_identifier'];
+		$doi_identifier = htmlspecialchars($_REQUEST['doi_identifier']);
 	}
 	else {
 		$doi_identifier = false;
 	}
 	if (isset($_REQUEST['subject_prefix']) && $_REQUEST['subject_prefix']) {
-		$subject_prefix = $_REQUEST['subject_prefix'];
+		$subject_prefix = htmlspecialchars($_REQUEST['subject_prefix']);
 	}
 	else {
 		$subject_prefix = false;
 	}
 
 	if (isset($_REQUEST['member']) && $_REQUEST['member']) {
-		$member = $_REQUEST['member'];
+		$member = (int) $_REQUEST['member'];
 	}
 	else {
 		$member = false;
 	}
 	if (isset($_REQUEST['pathSelected']) && $_REQUEST['pathSelected']) {
-		$pathSelected = $_REQUEST['pathSelected'];
+		$pathSelected = htmlspecialchars($_REQUEST['pathSelected']);
 	}
 	else {
 		$pathSelected = false;

@@ -16,19 +16,19 @@
 
 	$studyid = 0;
 	if (isset($_REQUEST['studyid'])) {
-		$studyid = $_REQUEST['studyid'];
+		$studyid = (int) $_REQUEST['studyid'];
 	}
 	if (isset($_REQUEST['groupid'])) {
-		$groupid = $_REQUEST['groupid'];
+		$groupid = (int) $_REQUEST['groupid'];
 	}
 	if (isset($_REQUEST['perm'])) {
-		$perm = $_REQUEST['perm'];
+		$perm = (int) $_REQUEST['perm'];
 	}
 	if (isset($_REQUEST['download'])) {
-		$download = $_REQUEST['download'];
+		$download = (int) $_REQUEST['download'];
 	}
 	if (isset($_REQUEST['templateid'])) {
-		$templateid = $_REQUEST['templateid'];
+		$templateid = (int) $_REQUEST['templateid'];
 	}
 	if ($templateid == 2) {
 		$template_name = "In Vitro";
@@ -125,8 +125,8 @@ include_once("../../baseIncludes.php");
 			'token=<?php echo $_SESSION["token"]; ?>&' +
 			'private=<?php echo $_SESSION["private"]; ?>&' +
 			'member=<?php echo $_SESSION["member"]; ?>&' +
-			'firstname=<?php echo $_SESSION["firstname"]; ?>&' +
-			'lastname=<?php echo $_SESSION["lastname"]; ?>',
+			'firstname=<?php echo urlencode($_SESSION["firstname"]); ?>&' +
+			'lastname=<?php echo urlencode($_SESSION["lastname"]); ?>',
 
 		uiOptions: {
 			// Toolbar buttons.

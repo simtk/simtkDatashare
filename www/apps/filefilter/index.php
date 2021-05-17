@@ -19,16 +19,16 @@
 	$perm = 0;
 	$download = 0;
 	if (isset($_REQUEST['studyid'])) {
-		$studyid = $_REQUEST['studyid'];
+		$studyid = (int) $_REQUEST['studyid'];
 	}
 	if (isset($_REQUEST['groupid'])) {
-		$groupid = $_REQUEST['groupid'];
+		$groupid = (int) $_REQUEST['groupid'];
 	}
 	if (isset($_REQUEST['perm'])) {
-		$perm = $_REQUEST['perm'];
+		$perm = (int) $_REQUEST['perm'];
 	}
 	if (isset($_REQUEST['download'])) {
-		$download = $_REQUEST['download'];
+		$download = (int) $_REQUEST['download'];
 	}
 	if (isset($_SESSION['email'])) {
 		$email = $_SESSION['email'];
@@ -37,7 +37,7 @@
 		$userid = $_SESSION['userid'];
 	}
 	if (isset($_REQUEST['templateid'])) {
-		$templateid = $_REQUEST['templateid'];
+		$templateid = (int) $_REQUEST['templateid'];
 	}
 
 	// ===== NAVIGATION BREADCRUMB

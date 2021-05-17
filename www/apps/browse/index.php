@@ -22,22 +22,22 @@
 	$download = 0;
 
 	if (isset($_REQUEST['studyid'])) {
-		$studyid = $_REQUEST['studyid'];
+		$studyid = (int) $_REQUEST['studyid'];
 	}
 	if (isset($_REQUEST['groupid'])) {
-		$groupid = $_REQUEST['groupid'];
+		$groupid = (int) $_REQUEST['groupid'];
 	}
 	if (isset($_REQUEST['perm'])) {
-		$perm = $_REQUEST['perm'];
+		$perm = (int) $_REQUEST['perm'];
 	}
 	if (isset($_REQUEST['download'])) {
-		$download = $_REQUEST['download'];
+		$download = (int) $_REQUEST['download'];
 	}
 	if (isset($_REQUEST['templateid'])) {
-		$templateid = $_REQUEST['templateid'];
+		$templateid = (int) $_REQUEST['templateid'];
 	}
 	if (isset($_REQUEST['pathSelected'])) {
-		$pathSelected = $_REQUEST['pathSelected'];
+		$pathSelected = htmlspecialchars($_REQUEST['pathSelected']);
 	}
 	if (isset($_SESSION['userid'])) {
 		$userid = $_SESSION['userid'];
@@ -194,8 +194,8 @@ if ($perm):
 			"&token=" . $_SESSION["token"] .
 			"&private=" . $_SESSION["private"] .
 			"&member=" . $_SESSION["member"] .
-			"&firstname=" . $_SESSION["firstname"] .
-			"&lastname=" . $_SESSION["lastname"];
+			"&firstname=" . urlencode($_SESSION["firstname"]) .
+			"&lastname=" . urlencode($_SESSION["lastname"]);
 	}
 
 	if ($download && $filesize != 0 && $data && $urlSendFileParams != "") {
@@ -342,8 +342,8 @@ if (isset($pathSelected) && $pathSelected != false && trim($pathSelected) != "")
 			'token=<?php echo $_SESSION["token"]; ?>&' +
 			'private=<?php echo $_SESSION["private"]; ?>&' +
 			'member=<?php echo $_SESSION["member"]; ?>&' +
-			'firstname=<?php echo $_SESSION["firstname"]; ?>&' +
-			'lastname=<?php echo $_SESSION["lastname"]; ?>',
+			'firstname=<?php echo urlencode($_SESSION["firstname"]); ?>&' +
+			'lastname=<?php echo urlencode($_SESSION["lastname"]); ?>',
 
 		// Send SimTK server name to elfinder as parameter in options.
 		simtkServer: "<?php echo $domain_name; ?>",
