@@ -41,6 +41,7 @@ function sendFile($filePath, $fileName, $tokenDownloadProgress=false) {
 		// Token file is used for tracking download progress.
 		$fp = fopen("/var/www/apps/browse/download/tokens/" . $tokenDownloadProgress, "w+");
 		fwrite($fp, "done\n");
+		fflush($fp);
 		fclose($fp);
 	}
 }
@@ -77,6 +78,7 @@ function sendFileChunked($fileName, $fileSize, $tokenDownloadProgress=false) {
 			if ($byteCounter - $lastCounterChange > $thresholdReport) {
 				$fp = fopen("/var/www/apps/browse/download/tokens/" . $tokenDownloadProgress, "w+");
 				fwrite($fp, ((int) ($byteCounter * 100 / $fileSize)) . "%\n");
+				fflush($fp);
 				fclose($fp);
 
 				// Move tracking counter to last reported value.
