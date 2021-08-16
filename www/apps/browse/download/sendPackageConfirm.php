@@ -64,7 +64,7 @@ foreach ($_REQUEST as $k=>$v) {
 		continue;
 	}
 	if ($k == "token") {
-		if (preg_match('/^[a-z$.\/0-9]/i', $v)) {
+		if (preg_match('/^[a-z$.\/0-9]+$/i', $v)) {
 			// Valid token.
 			$theURL .= "token=" . $v . "&";
 		}

@@ -59,13 +59,16 @@ if (!isset($arrDbConf["db"]) ||
 // Generate download filename.
 $theDownload = htmlspecialchars($_REQUEST['nameDownload']);
 $idx = strrpos($theDownload, "/");
-if ($idx === false) {
-	// Cannot find file.
-	echo "<h1 class='text-primary'>Invalid file to download: " . $theDownload . ".</h1>";
-	return;
+if ($idx !== false) {
+	// Get file name from path.
+	$strFront = substr($theDownload, 0, $idx);
+	$strFileName = substr($theDownload, $idx + 1);
 }
-$strFront = substr($theDownload, 0, $idx);
-$strFileName = substr($theDownload, $idx + 1);
+else {
+	// Only file name is present.
+	$strFront = "";
+	$strFileName = $theDownload;
+}
 
 $dirDownload = $conf->data->docroot. "/study/study" . $studyId . "/files";
 $strFilePath = $dirDownload . $strFront . "/" . $strFileName;
