@@ -14,23 +14,46 @@ include_once('../../../user/session.php');
 include_once('../../../user/checkuser.php');
 require_once("fileUtils.php");
 
+function echoJsonMsg($tokenDownloadProgress, $status, $reason) {
+	$theResult = array();
+	$theResult["status"] = $status;
+	$theResult["reason"] = $reason;
+	echo json_encode($theResult);
+
+	// Update status in token file.
+	$fp = fopen("/var/www/apps/browse/download/tokens/" . $tokenDownloadProgress, "w+");
+        fwrite($fp, $status . ": " . $reason . "\n");
+        fflush($fp);
+        fclose($fp);
+}
+
 $strConf = file_get_contents('/usr/local/mobilizeds/conf/mobilizeds.conf');
 $conf = json_decode($strConf);
+
 
 $studyId = 0;
 if (isset($_SESSION["study_id"])) {
 	$studyId = (int) $_SESSION["study_id"];
 }
 
+$userId = 0;
+if (isset($_SESSION["userid"])) {
+	$userId = (int) $_SESSION["userid"];
+}
+
 // Validates user permission.
 if (!$perm || $studyId == 0) {
-	echo "<h1 class='text-primary'>Your permissions do not allow access to this study.</h1>";
+	echoJsonMsg($tokenDownloadProgress, 
+		"failed", 
+		"Your permissions do not allow access to this study.");
 	return;
 }
 
 if (!class_exists("ZipArchive")) {
 	// ZipArchive class is not present. Cannot generate zip file
-	echo "<h1 class='text-primary'>Missing ZipArchive class.</h1>";
+	echoJsonMsg($tokenDownloadProgress, 
+		"failed", 
+		"Missing ZipArchive class.");
 	return;
 }
 
@@ -57,7 +80,9 @@ if (!isset($arrDbConf["db"]) ||
 	!isset($arrDbConf["user"]) ||
 	!isset($arrDbConf["pass"])) {
 	// Invalid db configuration.
-	echo "<h1 class='text-primary'>Invalid db configuration.</h1>";
+	echoJsonMsg($tokenDownloadProgress, 
+		"failed", 
+		"Invalid db configuration.");
 	return;
 }
 
@@ -70,7 +95,9 @@ if (is_array($tmpArr) && count($tmpArr) > 0) {
 }
 else {
 	// Files hash is not present.
-	echo "<h1 class='text-primary'>Missing files parameter.</h1>";
+	echoJsonMsg($tokenDownloadProgress, 
+		"failed", 
+		"Missing files parameter.");
 	return;
 }
 
@@ -85,7 +112,9 @@ foreach ($filesHash as $key=>$fileHash) {
 	else {
 		// Volume id is always the prefix.
 		// If not, hash is invalid. Do not proceed.
-		echo "<h1 class='text-primary'>Volume ID not found.</h1>";
+		echoJsonMsg($tokenDownloadProgress, 
+			"failed", 
+			"Volume ID not found.");
 		return;
 	}
 
@@ -110,12 +139,56 @@ foreach ($filesHash as $key=>$fileHash) {
 	}
 }
 
+// Get total bytes to add.
+$bytesAllFiles = 0;
+foreach ($arrFilesToAdd as $theFullPath=>$theFileName) {
+	$bytesAllFiles += filesize($theFullPath);
+}
+
+// User is logged in (i.e. not anonymous user).
+// If zip file to generate is large, email the zip file to user.
+if ($userId > 0 &&
+	$bytesAllFiles > MAXBYTES_ALL_FILES) {
+
+	// Calculate zip file size.
+	if (floor($bytesAllFiles / 1000000000) > 0) {
+		$strFileSize = floor($bytesAllFiles / 1000000000) . "GB";
+	}
+	else if (floor($bytesAllFiles / 1000000) > 0) {
+		$strFileSize = floor($bytesAllFiles / 1000000) . "MB";
+	}
+
+	// Send message and stop.
+	// Let cronjob handle zip file generation.
+	echoJsonMsg($tokenDownloadProgress, 
+		"zip_too_big", 
+		"A large zip file (" . 
+		$strFileSize . 
+		") will be generated.<br/>When it is ready, an email will be sent to " .
+		$_SESSION["email"] . 
+		".");
+
+	// Record entry for cronjob.
+	recordZipFileEntry($arrDbConf,
+		$_SESSION['group_id'],
+		$_SESSION['study_id'],
+		$_SESSION['userid'],
+		$_SESSION['token'],
+		urlencode(urldecode($_REQUEST['filesHash'])),
+		$_SESSION['email']);
+
+	return;
+}
+
+
 // Generate a randomized directory name.
 $nameRandDir = genRandDirName();
 $dirBase = $conf->data->docroot . "/downloads/" . $nameRandDir . "/";
 if (!mkdir($dirBase)) {
 	// Cannot create directory.
-	echo "<h1 class='text-primary'>Cannot create directory: " . $nameRandDir . ".</h1>";
+	echoJsonMsg($tokenDownloadProgress, 
+		"failed", 
+		"Cannot create directory: " . $nameRandDir . ".");
 	return;
 }
 $strFileName = "study" . $studyId . "-" . date("Y-m-d-H-i") . ".zip";
@@ -157,7 +230,9 @@ foreach ($arrFilesToAdd as $theFullPath=>$theFileName) {
 		}
 		else {
 			// Error. Cannot open zip file.
-			echo "<h1 class='text-primary'>Cannot open zip file: " . $strFileName . ".</h1>";
+			echoJsonMsg($tokenDownloadProgress, 
+				"failed", 
+				"Cannot open zip file: " . $strFileName . ".");
 			return;
 		}
 	}
@@ -170,25 +245,21 @@ foreach ($arrFilesToAdd as $theFullPath=>$theFileName) {
 		}
 		else {
 			// Error. Cannot open zip file.
-			echo "<h1 class='text-primary'>Cannot create zip file: " . $strFileName . ".</h1>";
+			echoJsonMsg($tokenDownloadProgress, 
+				"failed", 
+				"Cannot create zip file: " . $strFileName . ".");
 			return;
 		}
 	}
 }
 
-// Check validity of file to be downloaded.
-$res = checkDownloadFile($strFilePath, $strFileName, $fileSize);
-if ($res === false) {
-	// Invalid file.
-	echo "<h1 class='text-primary'>Invalid file to download: " . $strFileName . ".</h1>";
-	return;
-}
-
-// Log download.
-logStats($arrDbConf, $strFileName, $fileSize, 3);
-
-// Download file.
-sendFile($strFilePath, $strFileName, $tokenDownloadProgress);
+// Done with zip file generation.
+$theResult = array();
+$theResult["status"] = "ok";
+$theResult["pathDownload"] = "downloads/" . $nameRandDir;
+$theResult["nameDownload"] = $strFileName;
+echo json_encode($theResult);
+return;
 
 
 // Recursively find all files in directory and add to array.
@@ -222,20 +293,6 @@ function findFilesInDir($inDir, &$arrFilesToAdd, $subPath="") {
 			findFilesInDir($thePath, $arrFilesToAdd, $subPath . "/" . $val);
 		}
 	}
-}
-
-// Generate a randomized directory name.
-function genRandDirName() {
-
-	$arrChars = array_merge(range('A', 'Z'), range('a', 'z'), range(0, 9));
-	$cntChars = count($arrChars);
-
-	$nameRandDir = "";
-	for ($cnt=0; $cnt<8; $cnt++) {
-		$nameRandDir .= $arrChars[rand(0, $cntChars - 1)];
-	}
-
-	return $nameRandDir;
 }
 
 ?>

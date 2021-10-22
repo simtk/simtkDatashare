@@ -49,7 +49,8 @@ if (isset($_SESSION["group_id"])) {
 }
 
 $urlBrowse = "https://" . $domain_name . "/plugins/datashare/view.php?id=$groupId&studyid=$studyId";
-$urlDownload = str_replace("/sendZipDownloadConfirm.php", "/sendZipDownload.php", $theURL);
+$urlGenerateZip = str_replace("/sendZipDownloadConfirm.php", "/sendZipDownload.php", $theURL);
+$urlDownload = str_replace("/sendZipDownloadConfirm.php", "/sendDownload.php", $theURL);
 
 // Validates user permission.
 if (!$perm || $studyId == 0) {
@@ -126,14 +127,45 @@ $(document).ready(function() {
 
 		event.preventDefault();
 
-		// NOTE: Do not decode URL before sending it out again because the 
-		// filesHash parameter is a JSON-stringified array which needs
-		// to remain URL-encoded.
-		window.open("<?php echo $urlDownload; ?>" +
-			"&agreed=1" +
-			"&tokenDownloadProgress=" + tokenDownloadProgress,
-			"_self");
+		// Use AJAX to launch action to:
+		// (1) Generate Zip file and wait, or
+		// (2) Add to queue to wait for zip generation and return right away.
+		$.ajax({
+			url: "<?php echo $urlGenerateZip .
+				"&agreed=1" .
+				"&tokenDownloadProgress=" .
+				"download_" . 
+				$_SERVER["REMOTE_ADDR"] . "." .
+				$userId .  "." .
+				microtime(true); ?>",
+			type: "POST"
+		}).done(function(res) {
+			var theResult = JSON.parse(res);
+
+			if (theResult["status"] == "ok") {
+				// NOTE: Do not decode URL before sending it out again because the 
+				// filesHash parameter is a JSON-stringified array which needs
+				// to remain URL-encoded.
+				window.open("<?php echo $urlDownload; ?>" +
+					"&agreed=1" +
+					"&tokenDownloadProgress=" + tokenDownloadProgress +
+					"&pathDownload=" + theResult["pathDownload"] +
+					"&nameDownload=" + theResult["nameDownload"],
+					"_self");
+			}
+			else if (theResult["status"] == "zip_too_big") {
+				// Added to queue.
+				$(".msgDownload").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>A large zip file is generated; will send email when the zip file is ready.<</b></div>');
+			}
+			else {
+				// Zip file generation failed; show error message.
+				$(".msgDownload").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>' + theResult["reason"] + '</b></div>');
+			}
+		}).fail(function() {
+			console.log("Error retrieving download status");
+		})
 	});
+
 	$("#myBrowse").click(function() {
 		event.preventDefault();
 		window.location.href = "<?php echo urldecode($urlBrowse); ?>";
@@ -171,13 +203,43 @@ $(document).ready(function() {
 		"mySubmit",
 		tokenDownloadProgress);
 
-	// NOTE: Do not decode URL before sending it out again because the 
-	// filesHash parameter is a JSON-stringified array which needs
-	// to remain URL-encoded.
-	window.open("<?php echo $urlDownload; ?>" +
-		"&agreed=1" +
-		"&tokenDownloadProgress=" + tokenDownloadProgress,
-		"_self");
+	// Use AJAX to launch action to:
+	// (1) Generate Zip file and wait, or
+	// (2) Add to queue to wait for zip generation and return right away.
+	$.ajax({
+		url: "<?php echo $urlGenerateZip .
+			"&agreed=1" .
+			"&tokenDownloadProgress=" .
+			"download_" . 
+			$_SERVER["REMOTE_ADDR"] . "." .
+			$userId .  "." .
+			microtime(true); ?>",
+		type: "POST"
+	}).done(function(res) {
+		var theResult = JSON.parse(res);
+
+		if (theResult["status"] == "ok") {
+			// NOTE: Do not decode URL before sending it out again because the 
+			// filesHash parameter is a JSON-stringified array which needs
+			// to remain URL-encoded.
+			window.open("<?php echo $urlDownload; ?>" +
+				"&agreed=1" +
+				"&tokenDownloadProgress=" + tokenDownloadProgress +
+				"&pathDownload=" + theResult["pathDownload"] +
+				"&nameDownload=" + theResult["nameDownload"],
+				"_self");
+		}
+		else if (theResult["status"] == "zip_too_big") {
+			// Added to queue.
+			$(".msgDownload").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>A large zip file is generated; will send email when the zip file is ready.<</b></div>');
+		}
+		else {
+			// Zip file generation failed; show error message.
+			$(".msgDownload").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>' + theResult["reason"] + '</b></div>');
+		}
+	}).fail(function() {
+		console.log("Error retrieving download status");
+	})
 
 	$("#myBrowse").click(function() {
 		event.preventDefault();

@@ -64,7 +64,7 @@ foreach ($_REQUEST as $k=>$v) {
 		continue;
 	}
 	if ($k == "token") {
-		if (preg_match('/^[a-z$.\/0-9]/i', $v)) {
+		if (preg_match('/^[a-z$.\/0-9]+$/i', $v)) {
 			// Valid token.
 			$theURL .= "token=" . $v . "&";
 		}
@@ -317,14 +317,6 @@ if (isset($_SESSION["email"]) &&
 		event.preventDefault();
 		window.location.href = "<?php echo urldecode($urlBrowse); ?>";
 	});
-
-	// Download package.
-	function downloadPackage(packageUrl) {
-		if (packageUrl !== "") {
-			window.open("<?php echo urldecode($urlPackage); ?>&agreed=1&namePackage=" + 
-				packageUrl, "_self");
-		}
-	}
 
 	// Download package.
 	function downloadPackage(packageUrl) {

@@ -246,6 +246,7 @@ if ($namePackage != "") {
 					theUserId = 0;
 				}
 			}
+			/*
 			if (theUserId == 0) {
 				// User not logged in.
 
@@ -259,6 +260,7 @@ if ($namePackage != "") {
 					$("form[name='form-search']").append($(inputParam));
 				}
 			}
+			*/
 			document.forms['form-search'].submit();
 		});
 

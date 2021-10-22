@@ -27,8 +27,8 @@ if (file_exists("/var/www/apps/browse/download/tokens/" . $tokenDownloadProgress
 	$fpTokenDownloadProgress = fopen("/var/www/apps/browse/download/tokens/" . 
 		$tokenDownloadProgress, 
 		"r");
-	// Content is completion status; read up to 40 characacters.
-	$strCompletion = fread($fpTokenDownloadProgress, 40);
+	// Content is completion status; read up to 300 characacters.
+	$strCompletion = fread($fpTokenDownloadProgress, 300);
 	fclose($fpTokenDownloadProgress);
 
 	// Return % of completion, or the string "done".
