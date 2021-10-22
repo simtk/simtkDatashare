@@ -4,3 +4,5 @@
 # Clean up MobilizeDS server tokens.
 10 0 * * * root (/usr/bin/find /usr/local/mobilizeds/tokens -name "sess_*" -mmin +1440 -type f -delete > /dev/null)
 10 0 * * * root (/usr/bin/find /var/www/apps/browse/download/tokens -name "download_*" -mmin +1440 -type f -delete > /dev/null)
+* * * * * root (/usr/bin/php /var/www/apps/browse/download/generateZipDownload.php >> /var/log/apache2/zipdownload.txt)
+15 0 * * * root /opt/healthMonitors/monitorMobilizedsUsage.sh

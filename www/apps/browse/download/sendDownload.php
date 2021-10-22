@@ -55,9 +55,15 @@ if (!isset($arrDbConf["db"]) ||
 	return;
 }
 
-
-// Generate download filename.
+// Check download filename.
 $theDownload = htmlspecialchars($_REQUEST['nameDownload']);
+$tmpName = preg_replace("/[-A-Z0-9+_\. ~\/]/i", "", $theDownload);
+if (!empty($tmpName) || strstr($theDownload, "..")) {
+	// Invalid filename.
+	echo "<h1 class='text-primary'>Invalid filename.</h1>";
+	return;
+}
+// Get download filename.
 $idx = strrpos($theDownload, "/");
 if ($idx !== false) {
 	// Get file name from path.
@@ -70,7 +76,22 @@ else {
 	$strFileName = $theDownload;
 }
 
-$dirDownload = $conf->data->docroot. "/study/study" . $studyId . "/files";
+// Get path.
+$strFilePath = false;
+if (isset($_REQUEST["pathDownload"])) {
+	$dirDownload = $conf->data->docroot . "/" . 
+		htmlspecialchars($_REQUEST["pathDownload"]);
+}
+else {
+	$dirDownload = $conf->data->docroot. "/" . 
+		"study/study" . $studyId . "/files";
+}
+// Check path.
+if (!preg_match('/^[a-z\/0-9]+$/i', $dirDownload)) {
+	// Invalid path.
+	echo "<h1 class='text-primary'>Invalid directory.</h1>";
+	return;
+}
 $strFilePath = $dirDownload . $strFront . "/" . $strFileName;
 
 // Check validity of file to be downloaded.

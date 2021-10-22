@@ -22,13 +22,9 @@ function trackDownloadProgress(divDownload,
 	$("#" + divBrowse).prop("disabled", true);
 	$("#" + divBrowse).css("opacity", 0.5);
 
-	// Show download started message.
-	$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>Preparing file. Please wait: Do not navigate away from this page until the download is complete.</b></div>');
-	$("." + divDownload)[0].scrollIntoView(false);
-
 	// Start tracking download progress.
 	setTimeout(getDownloadStatus, 
-		3000, 
+		1000, 
 		divDownload, 
 		divBrowse, 
 		filenameDownloadProgress);
@@ -53,9 +49,26 @@ function getDownloadStatus(divDownload,
 		// Get completion status.
 		statusCompletion = statusCompletion.trim();
 
-		if (statusCompletion == "done") {
+		if (statusCompletion.startsWith("failed: ")) {
+			// Failed. Update UI.
+			$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>' + statusCompletion.substring(8) + '</b></div>');
+			$("." + divDownload)[0].scrollIntoView(false);
+
+			$("#" + divBrowse).prop("disabled", false);
+			$("#" + divBrowse).css("opacity", 1.0);
+		}
+		else if (statusCompletion.startsWith("zip_too_big: ")) {
+			// Zip file too big. Update UI.
+			$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>' + statusCompletion.substring(13) + '</b></div>');
+			$("." + divDownload)[0].scrollIntoView(false);
+
+			$("#" + divBrowse).prop("disabled", false);
+			$("#" + divBrowse).css("opacity", 1.0);
+		}
+		else if (statusCompletion == "done") {
 			// Done. Update UI.
 			$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Downloaded file</b></div>');
+			$("." + divDownload)[0].scrollIntoView(false);
 
 			$("#" + divBrowse).prop("disabled", false);
 			$("#" + divBrowse).css("opacity", 1.0);
@@ -64,12 +77,14 @@ function getDownloadStatus(divDownload,
 			// Still preparing file.
 			if (statusCompletion == "preparing") {
 				$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>Preparing file. Please wait: Do not navigate away from this page until the download is complete.</b></div>');
+				$("." + divDownload)[0].scrollIntoView(false);
 			}
 			else {
 				var idx = statusCompletion.indexOf("preparing ");
 				if (idx != -1) {
 					var percentComplete = statusCompletion.substr(idx + 9);
 					$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>Preparing file' + percentComplete + '. Please wait: Do not navigate away from this page until the download is complete.</b></div>');
+					$("." + divDownload)[0].scrollIntoView(false);
 				}
 			}
 
@@ -83,6 +98,7 @@ function getDownloadStatus(divDownload,
 		else {
 			// Not finished yet. Update message with download progress.
 			$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>Downloading file (' + statusCompletion + '). Please wait: Do not navigate away from this page until the download is complete.</b></div>');
+			$("." + divDownload)[0].scrollIntoView(false);
 
 			// Continue tracking download progress.
 			setTimeout(getDownloadStatus,
@@ -95,5 +111,21 @@ function getDownloadStatus(divDownload,
 		console.log("Error retrieving download status");
 	})
 }
+
+// Retrieve results returned from AJAX call.
+function getResults(res) {
+	var arrRes = [];
+	$.each(res, function(key, value) {
+		arrRes[key] = value;
+		if ($.isArray(value)) {
+			$.each(value, function(key1, value1) {
+				arrRes[key1] = value1;
+			});
+		}
+	});
+
+	return arrRes;
+}
+
 
 

@@ -10,6 +10,9 @@
  * are funded by NIH grant R01GM124443.
  */
 
+// Set threshold at 200MB for files to be considered as "too big" to be handled differently.
+defined('MAXBYTES_ALL_FILES') or define('MAXBYTES_ALL_FILES', 200 * 1024 * 1024);
+
 // Send file to browser.
 function sendFile($filePath, $fileName, $tokenDownloadProgress=false) {
 
@@ -164,6 +167,234 @@ function logStats($arrDbConf, $fileName, $fileSize, $typeId) {
 	);
 
 	pg_close($db_connection);
+}
+
+
+// Generate a randomized directory name.
+function genRandDirName() {
+
+	$arrChars = array_merge(range('A', 'Z'), range('a', 'z'), range(0, 9));
+	$cntChars = count($arrChars);
+
+	$nameRandDir = "";
+	for ($cnt=0; $cnt<8; $cnt++) {
+		$nameRandDir .= $arrChars[rand(0, $cntChars - 1)];
+	}
+
+	return $nameRandDir;
+}
+
+
+// Record zipfile creation entry for cronjob.
+function recordZipFileEntry($arrDbConf,
+	$groupId, 
+	$studyId, 
+	$userId, 
+	$token, 
+	$filesHash, 
+	$email) {
+
+	// Get db connection.
+	$db_connection = pg_connect("host=localhost " .
+		"dbname=" . $arrDbConf["db"] . " " .
+		"user=" . $arrDbConf["user"] . " " .
+		"password=" . $arrDbConf["pass"]);
+
+	date_default_timezone_set('America/Los_Angeles');
+
+	$groupId = (int) $groupId;
+	$studyId = (int) $studyId;
+	$userId = (int) $userId;
+	$token = htmlspecialchars($token);
+	$filesHash = htmlspecialchars($filesHash);
+	$email = htmlspecialchars($email);
+
+	$strInsert = "INSERT INTO zipfile_job " .
+		"(group_id, study_id, user_id, token, fileshash, email, add_date) " .
+		"VALUES " .
+		"($1, $2, $3, $4, $5, $6, NOW())"; 
+	$result = pg_query_params($db_connection, $strInsert,
+		array(
+			$groupId,
+			$studyId,
+			$userId,
+			$token,
+			$filesHash,
+			$email
+		)
+	);
+	pg_close($db_connection);
+}
+
+
+// Get next zip file entry to be processed from database.
+function getNextZipFileEntry($arrDbConf, 
+	&$zipfileId, 
+	&$groupId,
+	&$studyId, 
+	&$userId,
+	&$token,
+	&$strFilesHash,
+	&$email) {
+
+	// Get db connection.
+	$db_connection = pg_connect("host=localhost " .
+		"dbname=" . $arrDbConf["db"] . " " .
+		"user=" . $arrDbConf["user"] . " " .
+		"password=" . $arrDbConf["pass"]);
+
+	// Status value of 0 means zipfile is to be created.
+	$strQuery = "SELECT zipfile_id, group_id, study_id, user_id, token, fileshash, email " .
+		"FROM zipfile_job " .
+		"WHERE status=0 " .
+		"ORDER BY zipfile_id " .
+		"LIMIT 1";
+	$result = pg_query_params($db_connection, $strQuery, array());
+	if (pg_num_rows($result) == 0) {
+		// Entry not available. Free resultset.
+		pg_free_result($result);
+		pg_close($db_connection);
+
+		return false;
+        }
+
+	while ($row = pg_fetch_array($result, null, PGSQL_ASSOC)) {
+		$zipfileId = $row["zipfile_id"];
+		$groupId = $row["group_id"];
+		$studyId = $row["study_id"];
+		$userId = $row["user_id"];
+		$token = $row["token"];
+		$strFilesHash = $row["fileshash"];
+		$email = $row["email"];
+	}
+
+	pg_free_result($result);
+	pg_close($db_connection);
+
+	return true;
+}
+
+// Log start time of zipfile creation.
+function logZipFileStart($arrDbConf, $zipfileId) {
+
+	// Get db connection.
+	$db_connection = pg_connect("host=localhost " .
+		"dbname=" . $arrDbConf["db"] . " " .
+		"user=" . $arrDbConf["user"] . " " .
+		"password=" . $arrDbConf["pass"]);
+
+	// Status value of 1 means zipfile creation is in progress.
+	$strUpdate = "UPDATE zipfile_job SET " .
+		"status=1, " .
+		"start_date=NOW() " .
+		"WHERE zipfile_id=$1";
+	$result = pg_query_params($db_connection, $strUpdate, 
+		array($zipfileId));
+	if (!$result || pg_affected_rows($result) != 1) {
+		// Entry not updated.
+		pg_free_result($result);
+		pg_close($db_connection);
+
+		return false;
+        }
+
+	pg_free_result($result);
+	pg_close($db_connection);
+
+	return true;
+}
+
+// Log success and stop time of zipfile creation.
+function logZipFileStop($arrDbConf, $zipfileId, $strFilePath, $strFileName) {
+
+	$strFilePath = htmlspecialchars($strFilePath);
+	$strFileName = htmlspecialchars($strFileName);
+
+	// Get db connection.
+	$db_connection = pg_connect("host=localhost " .
+		"dbname=" . $arrDbConf["db"] . " " .
+		"user=" . $arrDbConf["user"] . " " .
+		"password=" . $arrDbConf["pass"]);
+
+	// Status value of 2 means zipfile creation is done.
+	$strUpdate = "UPDATE zipfile_job SET " .
+		"status=2, " .
+		"filepath=$2, " .
+		"filename=$3, " .
+		"stop_date=NOW() " .
+		"WHERE zipfile_id=$1";
+	$result = pg_query_params($db_connection, $strUpdate, 
+		array(
+			$zipfileId, 
+			$strFilePath, 
+			$strFileName
+		)
+	);
+	if (!$result || pg_affected_rows($result) != 1) {
+		// Entry not updated.
+		pg_free_result($result);
+		pg_close($db_connection);
+
+		return false;
+        }
+
+	pg_free_result($result);
+	pg_close($db_connection);
+
+	return true;
+}
+
+
+// Get count of zipfile creation in progress.
+function countZipFileInProgress($arrDbConf, &$startDate) {
+
+	// Get db connection.
+	$db_connection = pg_connect("host=localhost " .
+		"dbname=" . $arrDbConf["db"] . " " .
+		"user=" . $arrDbConf["user"] . " " .
+		"password=" . $arrDbConf["pass"]);
+
+	$startDate = false;
+	$strQuery = "SELECT FLOOR(EXTRACT(EPOCH FROM start_date)) as sd FROM zipfile_job " .
+		"WHERE status=1";
+	$result = pg_query_params($db_connection, $strQuery, array());
+	$count = pg_num_rows($result);
+	while ($row = pg_fetch_array($result, null, PGSQL_ASSOC)) {
+		$startDate = $row["sd"];
+	}
+
+	pg_free_result($result);
+	pg_close($db_connection);
+
+	return $count;
+}
+
+// Log error status in zipfile creation.
+function logZipFileError($arrDbConf, $zipfileId, $status) {
+
+	// Get db connection.
+	$db_connection = pg_connect("host=localhost " .
+		"dbname=" . $arrDbConf["db"] . " " .
+		"user=" . $arrDbConf["user"] . " " .
+		"password=" . $arrDbConf["pass"]);
+
+	$strUpdate = "UPDATE zipfile_job SET " .
+		"status=$2 " .
+		"WHERE zipfile_id=$1";
+	$result = pg_query_params($db_connection, $strUpdate, 
+		array($zipfileId, $status));
+	if (!$result || pg_affected_rows($result) != 1) {
+		// Entry not updated.
+		pg_free_result($result);
+		pg_close($db_connection);
+
+		return false;
+        }
+
+	pg_free_result($result);
+	pg_close($db_connection);
+
+	return true;
 }
 
 ?>

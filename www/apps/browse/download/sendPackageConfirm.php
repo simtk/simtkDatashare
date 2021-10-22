@@ -321,14 +321,6 @@ if (isset($_SESSION["email"]) &&
 	// Download package.
 	function downloadPackage(packageUrl) {
 		if (packageUrl !== "") {
-			window.open("<?php echo urldecode($urlPackage); ?>&agreed=1&namePackage=" + 
-				packageUrl, "_self");
-		}
-	}
-
-	// Download package.
-	function downloadPackage(packageUrl) {
-		if (packageUrl !== "") {
 			// Generate a token using remote address, user id, and timestamp.
 			var tokenDownloadProgress = "download_" +
 				"<?php echo $_SERVER["REMOTE_ADDR"]; ?>" + "." +
