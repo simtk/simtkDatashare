@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2020-2021, SimTK DataShare Team
+ * Copyright 2020-2022, SimTK DataShare Team
  *
  * This file is part of SimTK DataShare. Initial development
  * was funded under NIH grants R01GM107340 and U54EB020405
@@ -82,6 +82,15 @@ include_once("../../baseIncludes.php");
 		});
 	});
 </script>
+<style>
+.panel-body {
+	min-height: 440px;
+}
+.panel-primary {
+	min-height: 481px;
+}
+</style>
+
 </head>
 
 <body>
@@ -181,18 +190,6 @@ include_once("../../baseIncludes.php");
 </script>
 
 </div>
-
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-
-<!---
-<p><a href="" onclick="return popitup('/apps/import/getlog.php?studyid=<?= $studyid;?>')">Admin Debugging Log (Remove before release)</a></p>
---->
 
 </div>
 

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2020-2021, SimTK DataShare Team
+ * Copyright 2020-2022, SimTK DataShare Team
  *
  * This file is part of SimTK DataShare. Initial development
  * was funded under NIH grants R01GM107340 and U54EB020405
@@ -11,6 +11,7 @@
  */
 
 ?>
+			<div class="du_warning_msg"></div>
 			<div class="banner">
 				<div class="clearfix">
 
@@ -59,7 +60,7 @@ else {
 }
 
 // Set up parameters.
-if (isset($_SESSION["section"]) &&
+if (isset($_REQUEST["section"]) &&
 	isset($_SESSION["group_id"]) &&
 	isset($_SESSION["userid"]) &&
 	isset($_SESSION["study_id"]) &&
@@ -119,7 +120,8 @@ if ($namePackage != "") {
 				<input type="hidden" name="userid" value="<?= $userid ?>">
 				<input type="hidden" name="email" value="<?= $email ?>">
 			</form>
-			<form name="form-import" action="<?= $relative_url ?>apps/import/" method="get">
+			<form id="import-target" name="form-import" action="<?= $relative_url ?>apps/import/" method="get">
+				<input type="hidden" name="token" value="<?= $_SESSION['token'] ?>">    
 				<input type="hidden" name="studyid" value="<?= $studyid ?>">    
 				<input type="hidden" name="groupid" value="<?= $groupid ?>">
 				<input type="hidden" name="perm" value="<?= $perm ?>">
@@ -149,8 +151,69 @@ if ($namePackage != "") {
 
 <?php if ($perm > 2): ?>
 
+
 <?php if (!isset($_SESSION['isDOI']) || !$_SESSION['isDOI'] || !isset($_SESSION['doi_identifier']) || empty($_SESSION['doi_identifier'])) { ?>
-				<div id="importDiv" class="col-sm-3" ><a class="btn btn-block btn-lg btn-warning" href="#" onclick="document.forms['form-import'].submit();"><span class="glyphicon glyphicon-cloud-upload"></span> Import/Edit Data</a></div>
+
+<script>
+// Handle import button click.
+function importHandler() {
+
+	var ok_diskusage = false;
+	var total_bytes = false;
+	var allowed_bytes = false;
+
+	// Check validity of user and study.
+	var theData = new Array();
+	theData.push({name: "userid", value: "<?php echo $_SESSION['userid']; ?>"});
+	theData.push({name: "token", value: "<?php echo $_SESSION['token']; ?>"});
+	theData.push({name: "studyid", value: "<?php echo $_SESSION['study_id']; ?>"});
+	theData.push({name: "groupid", value: "<?php echo $_SESSION['group_id']; ?>"});
+	theData.push({name: "section", value: "<?php echo $_SESSION['section']; ?>"});
+	$.ajax({
+		type: "POST",
+		data: theData,
+		dataType: "json",
+		url: "/user/checkstudy.php",
+		async: false,
+	}).done(function(res) {
+		// Result is already in JSON-decoded.
+		if (res.status) {
+			// Study is valid. Get disk usage info.
+			ok_diskusage = res.ok_diskusage;
+			total_bytes = Number(res.total_bytes);
+			allowed_bytes = Number(res.allowed_bytes);
+		}
+	}).fail(function(res) {
+	});
+
+	// Clear previous message first.
+	$(".du_warning_msg").html('');
+
+	if (!ok_diskusage) {
+		if (total_bytes != false && allowed_bytes != false) {
+			// Disk space used exceeded project quota.
+			// Display message.
+			// Do not proceed to the import page.
+			$(".du_warning_msg").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Total disk space used (' + total_bytes + ' GB) exceeded project quota (' + allowed_bytes + ' GB). Please contact SimTK WebMaster.</b></div>');
+			$(".du_warning_msg")[0].scrollIntoView(false);
+
+			event.preventDefault();
+		}
+		else {
+			// Cannot get disk usage or project quota. Proceed to import data.
+			// Show a message in console.
+			console.log("total bytes: " + total_bytes + "; allowed bytes: " + allowed_bytes);
+			document.forms['form-import'].submit();
+		}
+	}
+	else {
+		// OK. Proceed to import data.
+		document.forms['form-import'].submit();
+	}
+}
+</script>
+
+				<div id="importDiv" class="col-sm-3" ><a class="btn btn-block btn-lg btn-warning" href="#" onclick="importHandler()"><span class="glyphicon glyphicon-cloud-upload"></span> Import/Edit Data</a></div>
 
 				<div id="configDiv" class="col-sm-3" ><a class="btn btn-block btn-lg btn-warning" href="#" onclick="document.forms['form-filefilter'].submit();"><span class="glyphicon glyphicon-wrench"></span> Query Config</a></div>
 
@@ -206,7 +269,7 @@ if ($namePackage != "") {
 			theURL = "/apps/browse/download/sendPackageEmailed.php?";
 		}
 		if (theURL != "") {
-			theURL += "<?php echo $urlSendFileParams; ?>";
+			theURL += "<?php if (isset($urlSendFileParams)) echo $urlSendFileParams; ?>";
 			// Redirect to the confirmation page.
 			window.location.href = theURL;
 			return;

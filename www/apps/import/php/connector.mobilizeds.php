@@ -1,17 +1,18 @@
 <?php
 
 /**
- * Copyright 2020-2021, SimTK DataShare Team
+ * Copyright 2020-2022, SimTK DataShare Team
  *
- * This file is part of SimTK DataShare. Initial development
- * was funded under NIH grants R01GM107340 and U54EB020405
- * and the U.S. Army Medical Research & Material Command award
- * W81XWH-15-1-0232R01. Continued maintenance and enhancement
+ * This file is part of SimTK DataShare. Initial development 
+ * was funded under NIH grants R01GM107340 and U54EB020405 
+ * and the U.S. Army Medical Research & Material Command award 
+ * W81XWH-15-1-0232R01. Continued maintenance and enhancement 
  * are funded by NIH grant R01GM124443.
  */
 
 
 include_once('../../../user/server.php');
+include_once('../../browse/download/fileUtils.php');
 
 error_reporting(0); // Set E_ALL for debuging
 
@@ -113,6 +114,19 @@ function handleFileChange($cmd, &$result, $args, $elfinder) {
 	shell_exec( 'touch ' . $token );
 	$log = sprintf('[%s] %s:', date('r'), strtoupper($cmd));
 
+	$arrDbConf = array();
+	$strConf = file_get_contents("/usr/local/mobilizeds/conf/mobilizeds.conf");
+	$jsonConf = json_decode($strConf, true);
+	foreach ($jsonConf as $key => $value) {
+		if (is_array($value)) {
+			if ($key == "postgres") {
+				foreach ($value as $key => $val) {
+					$arrDbConf[$key] = $val;
+				}
+			}
+		}
+	}
+
 	// Array of compressed files added.
 	$compressedFilesAdded = array();
 
@@ -166,12 +180,26 @@ function handleFileChange($cmd, &$result, $args, $elfinder) {
 		// Files have been uploaded.
 		foreach ($result as $theStatus=>$theValue) {
 
-			// Having the  status of "changed" in the $result array 
+			// Having the status of "changed" in the $result array 
 			// means the files upload has been completed.
 			// NOTE: This handleFileChange() method is invoked multiple times
 			// during upload and only its invocation with $result array
 			// containing the status of "changed" is when the upload is complete.
 			if ($theStatus == "changed") {
+				// Get directory information after the upload.
+				$fullPathName = $conf->data->docroot . 
+					"/study/study" . $_REQUEST["study"] .
+					"/files";
+				getDirInfo($fullPathName, $totalBytes, $lastModified);
+
+				// Save disk usage info.
+				saveDirInfo($arrDbConf, 
+					$_REQUEST['userid'],
+					$_REQUEST['token'],
+					$_REQUEST["groupid"],
+					$_REQUEST["study"],
+					$totalBytes,
+					$lastModified);
 
 				// Upload has completed.
 
@@ -229,7 +257,29 @@ function handleFileChange($cmd, &$result, $args, $elfinder) {
 			}
 		}
 	}
+	else if ($cmd == "rm") {
+		foreach ($result as $theStatus=>$theValue) {
+			if ($theStatus == "changed") {
+				// $cmd with value of "rm" and $theStatus value 
+				// of "changed" indiate item(s) deleted and
+				// trash has been emptied.
+				// Get directory information after the deletion.
+				$fullPathName = $conf->data->docroot . 
+					"/study/study" . $_REQUEST["study"] .
+					"/files";
+				getDirInfo($fullPathName, $totalBytes, $lastModified);
 
+				// Save disk uage info.
+				saveDirInfo($arrDbConf, 
+					$_REQUEST['userid'],
+					$_REQUEST['token'],
+					$_REQUEST["groupid"],
+					$_REQUEST["study"],
+					$totalBytes,
+					$lastModified);
+			}
+		}
+	}
 
 	$command = $indexer . ' ' . $conf->data->docroot . '/study/study'.$_REQUEST['study'].'/files 2>&1';
 	$log .= $command;

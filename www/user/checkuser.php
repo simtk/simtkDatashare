@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2020-2021, SimTK DataShare Team
+ * Copyright 2020-2022, SimTK DataShare Team
  *
  * This file is part of SimTK DataShare. Initial development
  * was funded under NIH grants R01GM107340 and U54EB020405
@@ -9,6 +9,8 @@
  * W81XWH-15-1-0232R01. Continued maintenance and enhancement
  * are funded by NIH grant R01GM124443.
  */
+
+	require_once "checkUserAndStudy.php";
 
 	$conf = file_get_contents('/usr/local/mobilizeds/conf/mobilizeds.conf');
 	$conf = json_decode($conf);
@@ -96,57 +98,16 @@
 		$pathSelected = false;
 	}
 
-/*
-	// Check study.
-	$url = "https://$domain_name/plugins/api/index.php?key=$api_key" .
-		"&userid=" . $userid .
-		"&token=" . $token . 
-		"&studyid=" . $studyid .
-		"&groupid=" . $groupid .
-		"&action=20" .
-		"&tool=" . $section;
-	$isStudyValid = true;
-	$response_study_json = file_get_contents($url);
-	$response_study = json_decode($response_study_json);
-	if ($response_study != null && $response_study->study_valid) {
-		$valid_group_id = $response_study->group_id;
-		$valid_token = $response_study->token;
-		$templateid = $response_study->template_id;
-		$is_private = $response_study->is_private;  // 0 is public, 1 is registered user, 2 is private
-		$active = $response_study->active;  // active field
-		$group_name = $response_study->group_name;  // group name
-		$group_id = $response_study->group_id;  // group id
-		$study_name = $response_study->study_name;  // study name
-		$subject_prefix = $response_study->subject_prefix;  // Subject prefix
-		$is_group_public = $response_study->is_public;  // 1 is public, 0 is private
-	}
-	else {
-		$isStudyValid = false;
-		return;
-	}
-*/
-
-	// Check user.
-	$isStudyValid = true;
-	$url = "https://$domain_name/plugins/api/index.php?key=$api_key" .
-		"&userid=" . $userid .
-		"&token=" . $token . 
-		"&studyid=" . $studyid .
-		"&groupid=" . $groupid .
-		"&action=14" .
-		"&tool=" . $section;
-	$context = array(
-		"ssl"=>array(
-			"verify_peer"=>false,
-			"verify_peer_name"=>false,
-		),
-	);
-	$response_study_json = file_get_contents($url, false, stream_context_create($context));
-	$response_study = json_decode($response_study_json);
-
-	if ($response_study == null || !$response_study->study_valid) {
-		// Invalid study.
-		$isStudyValid = false;
+	// Check user and study.
+	$isStudyValid = checkUserAndStudy($domain_name,
+		$api_key,
+		$userid,
+		$token,
+		$studyid,
+		$groupid,
+		$section,
+		$response_study);
+	if (!$isStudyValid) {
 		return;
 	}
 
@@ -161,6 +122,7 @@
 	$study_name = $response_study->study_name;  // study name
 	$subject_prefix = $response_study->subject_prefix;  // Subject prefix
 	$is_group_public = $response_study->is_public;  // 1 is public, 0 is private
+	$ok_diskusage = $response_study->ok_diskusage;  // total disk usage is ok
 
 	if (!$userid) {
 		$email = false;
@@ -355,6 +317,7 @@
 	$_SESSION['group_id'] = $group_id;
 	$_SESSION['study_id'] = $studyid;
 	$_SESSION['pathSelected'] = $pathSelected;
+	$_SESSION['ok_diskusage'] = $ok_diskusage;
 	if (isset($isDOI)) {
 		$_SESSION['isDOI'] = $isDOI;
 	}
@@ -378,6 +341,7 @@
 
 	$_SESSION['private'] = $private;
 	$_SESSION['member'] = $member;
+
 ?>
 
 

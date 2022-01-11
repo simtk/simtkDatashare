@@ -4,7 +4,7 @@
  * http://elfinder.org
  * 
  * Copyright 2009-2020, Studio 42
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2022, SimTK Team
  * Licensed under a 3-clauses BSD license
  */
 (function(root, factory) {
@@ -6179,6 +6179,64 @@ elFinder.prototype = {
 					dfrd.resolve(renames, hashes);
 				},
 				check = function() {
+
+					// SimTK NOTE: Check disk usage before import.
+					var ok_diskusage = false;
+					var total_bytes = false;
+					var allowed_bytes = false;
+
+					var theData = new Array();
+					// Get parameters from import form.
+					var token = $("form[name=form-import] input:hidden[name=token]").val();
+					var userId = $("form[name=form-import] input:hidden[name=userid]").val();
+					var groupId = $("form[name=form-import] input:hidden[name=groupid]").val();
+					var studyId = $("form[name=form-import] input:hidden[name=studyid]").val();
+					theData.push({name: "userid", value: userId});
+					theData.push({name: "token", value: token});
+					theData.push({name: "studyid", value: studyId});
+					theData.push({name: "groupid", value: groupId});
+					theData.push({name: "section", value: "datashare"});
+					$.ajax({
+						type: "POST",
+						data: theData,
+						dataType: "json",
+						url: "/user/checkstudy.php",
+						async: false,
+					}).done(function(res) {
+						// Note: Result is already JSON-decoded.
+						if (res.status) {
+							// Study is valid. Get disk usage info.
+							ok_diskusage = res.ok_diskusage;
+							total_bytes = Number(res.total_bytes);
+							allowed_bytes = Number(res.allowed_bytes);
+						}
+					}).fail(function(res) {
+					});
+
+					// Clear previous message first.
+					$(".du_warning_msg").html('');
+
+					if (!ok_diskusage) {
+						if (total_bytes != false && allowed_bytes != false) {
+							// Disk space used exceeded project quota.
+							// Display warning message. Do not proceed with import.
+							$(".du_warning_msg").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Total disk space used (' + total_bytes + ' GB) exceeded project quota (' + allowed_bytes + ' GB). Please contact SimTK WebMaster.</b></div>');
+							$(".du_warning_msg")[0].scrollIntoView(false);
+
+							return;
+						}
+						else {
+							// Cannot get disk usage or project quota.
+							// Proceed to import data.
+							// Show a message in console.
+							console.log("total bytes: " + total_bytes + 
+								"; allowed bytes: " + allowed_bytes);
+						}
+					}
+					else {
+				        	// Total disk usage is ok.
+					}
+
 					var existed = [], exists = [], i, c,
 						pathStr = target !== fm.cwd().hash? fm.path(target, true) + fm.option('separator', target) : '',
 						// SimTK NOTE: Confirmation dialog for archive overwriting.
