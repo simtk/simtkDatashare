@@ -60,7 +60,7 @@ else {
 }
 
 // Set up parameters.
-if (isset($_REQUEST["section"]) &&
+if (isset($_SESSION["section"]) &&
 	isset($_SESSION["group_id"]) &&
 	isset($_SESSION["userid"]) &&
 	isset($_SESSION["study_id"]) &&

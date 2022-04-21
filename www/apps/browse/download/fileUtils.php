@@ -192,7 +192,10 @@ function recordZipFileEntry($arrDbConf,
 	$userId, 
 	$token, 
 	$filesHash, 
-	$email) {
+	$email,
+	$firstName,
+	$lastName,
+	$groupName) {
 
 	// Get db connection.
 	$db_connection = pg_connect("host=localhost " .
@@ -208,11 +211,14 @@ function recordZipFileEntry($arrDbConf,
 	$token = htmlspecialchars($token);
 	$filesHash = htmlspecialchars($filesHash);
 	$email = htmlspecialchars($email);
+	$firstName = htmlspecialchars($firstName);
+	$lastName = htmlspecialchars($lastName);
+	$groupName = htmlspecialchars($groupName);
 
 	$strInsert = "INSERT INTO zipfile_job " .
-		"(group_id, study_id, user_id, token, fileshash, email, add_date) " .
+		"(group_id, study_id, user_id, token, fileshash, email, add_date, firstname, lastname, groupname) " .
 		"VALUES " .
-		"($1, $2, $3, $4, $5, $6, NOW())"; 
+		"($1, $2, $3, $4, $5, $6, NOW(), $7, $8, $9)"; 
 	$result = pg_query_params($db_connection, $strInsert,
 		array(
 			$groupId,
@@ -220,7 +226,10 @@ function recordZipFileEntry($arrDbConf,
 			$userId,
 			$token,
 			$filesHash,
-			$email
+			$email,
+			$firstName,
+			$lastName,
+			$groupName
 		)
 	);
 	pg_close($db_connection);
@@ -235,7 +244,10 @@ function getNextZipFileEntry($arrDbConf,
 	&$userId,
 	&$token,
 	&$strFilesHash,
-	&$email) {
+	&$email,
+	&$firstName,
+	&$lastName,
+	&$groupName) {
 
 	// Get db connection.
 	$db_connection = pg_connect("host=localhost " .
@@ -244,7 +256,7 @@ function getNextZipFileEntry($arrDbConf,
 		"password=" . $arrDbConf["pass"]);
 
 	// Status value of 0 means zipfile is to be created.
-	$strQuery = "SELECT zipfile_id, group_id, study_id, user_id, token, fileshash, email " .
+	$strQuery = "SELECT zipfile_id, group_id, study_id, user_id, token, fileshash, email, firstname, lastname, groupname " .
 		"FROM zipfile_job " .
 		"WHERE status=0 " .
 		"ORDER BY zipfile_id " .
@@ -266,6 +278,9 @@ function getNextZipFileEntry($arrDbConf,
 		$token = $row["token"];
 		$strFilesHash = $row["fileshash"];
 		$email = $row["email"];
+		$firstName = $row["firstname"];
+		$lastName = $row["lastname"];
+		$groupName = $row["groupname"];
 	}
 
 	pg_free_result($result);

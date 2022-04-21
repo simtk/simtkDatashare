@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2020-2021, SimTK DataShare Team
+ * Copyright 2020-2022, SimTK DataShare Team
  *
  * This file is part of SimTK DataShare. Initial development
  * was funded under NIH grants R01GM107340 and U54EB020405
@@ -175,7 +175,10 @@ if ($userId > 0 &&
 		$_SESSION['userid'],
 		$_SESSION['token'],
 		urlencode(urldecode($_REQUEST['filesHash'])),
-		$_SESSION['email']);
+		$_SESSION['email'],
+		$_SESSION['firstname'],
+		$_SESSION['lastname'],
+		$_SESSION['group_name']);
 
 	return;
 }
