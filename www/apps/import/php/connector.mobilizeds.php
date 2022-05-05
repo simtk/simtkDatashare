@@ -106,6 +106,59 @@ function access($attr, $path, $data, $volume, $isDir, $relpath) {
 		:  null;                                 // else elFinder decide it itself
 }
 
+// Check directories/files with leading "." before extraction.
+function checkDotDirFilesBeforeExtraction($theDir, $theFullFilePath, $strFileType) {
+
+	$theDir = trim($theDir);
+	if (@substr_compare($theDir, "/", -1) != 0) {
+		// Does not end with "/". Append "/".
+		$theDir .= "/";
+	}
+	if (!is_dir($theDir)) {
+		// Not a directory. Ignore this zip file.
+		return false;
+	}
+
+	// Generate the cd command for each containing directory.
+	$commandCd = "cd " . $theDir;
+
+	if ($strFileType == "zip") {
+		// Get number of directories/files that start with ".".
+		$commandNumDotDirFiles = "; /usr/bin/unzip -Z1 " . 
+			$theFullFilePath . 
+			" | /usr/bin/grep '/\.' | /usr/bin/wc -l";
+		$resNumDotDirFiles = shell_exec($commandCd . $commandNumDotDirFiles);
+		$numDotDirFiles = intval($resNumDotDirFiles);
+
+		// NOTE: Check directories/files with leading "." using unzip.
+		// Top level dot directories and files cannot be excluded by unzip -x option.
+		// Do not proceed with extraction.
+		$commandNumLeadDotDirFiles = "; /usr/bin/unzip -Z1 " . 
+			$theFullFilePath . 
+			" | /usr/bin/grep '^\.' | /usr/bin/wc -l";
+		$resLeadDotDirFiles = shell_exec($commandCd . $commandNumLeadDotDirFiles);
+		$numLeadDotDirFiles = intval($resLeadDotDirFiles);
+		if ($numLeadDotDirFiles > 0) {
+			// Do not proceed with extraction using unzip.
+			return false;
+		}
+	}
+	else if ($strFileType == "tar.gz" || $strFileType == "tar") {
+		// Get number of directories/files that start with ".".
+		$commandNumDotDirFiles = "; /usr/bin/tar -tf " . 
+			$theFullFilePath . 
+			" | /usr/bin/grep '/\.' | /usr/bin/wc -l";
+		$resNumDotDirFiles = shell_exec($commandCd . $commandNumDotDirFiles);
+		$numDotDirFiles = intval($resNumDotDirFiles);
+	}
+	else {
+		return false;
+	}
+
+	// OK.
+	return $numDotDirFiles;
+}
+
 function handleFileChange($cmd, &$result, $args, $elfinder) {
 	global $conf;
 	$study   = $conf->study->id;
@@ -113,6 +166,7 @@ function handleFileChange($cmd, &$result, $args, $elfinder) {
 	$indexer = $conf->prefix . '/bin/index/study';
 	shell_exec( 'touch ' . $token );
 	$log = sprintf('[%s] %s:', date('r'), strtoupper($cmd));
+	$strResultArchiveExtract = "";
 
 	$arrDbConf = array();
 	$strConf = file_get_contents("/usr/local/mobilizeds/conf/mobilizeds.conf");
@@ -155,6 +209,11 @@ function handleFileChange($cmd, &$result, $args, $elfinder) {
 			// Track compresssed files added.
 			// Use associative array to prevent any potential duplicate full paths.
 			foreach ($data as $theFullFilePath) {
+
+				if (!is_file($theFullFilePath)) {
+					// Not a file. Ignore.
+					continue;
+				}
 
 				// Track .zip, .tar.gz, and .tar files.
 				$idxStartZIP = strlen($theFullFilePath) - strlen(".zip");
@@ -206,6 +265,11 @@ function handleFileChange($cmd, &$result, $args, $elfinder) {
 				// Expand compressed files.
 				foreach ($compressedFilesAdded as $theFullFilePath) {
 
+					if (!is_file($theFullFilePath)) {
+						// Not a file.
+						continue;
+					}
+
 					// Get the containing directory.
 					$idxLast = strrpos($theFullFilePath, "/");
 					if ($idxLast === false) {
@@ -225,30 +289,69 @@ function handleFileChange($cmd, &$result, $args, $elfinder) {
 
 						// Handle .zip file expansion.
 
+						// Check for dot directories/files
+						$statusCheck = checkDotDirFilesBeforeExtraction($theDir, 
+							$theFullFilePath,
+							"zip");
+						if ($statusCheck === false) {
+							// Ignore this zip file.
+							$strResultArchiveExtract .= "<br/>UnzippedError:" . 
+								substr($theFullFilePath, $idxLast + 1) . 
+								' is not extracted. Please remove top level directories/files that start with a "." from the zip file. NOTE: A zip file containing top level directories/files that start with a "." cannot be uploaded.';
+							continue;
+						}
+
 						// Unzip file command
-						$commandUnzip = "; /usr/bin/unzip " . $theFullFilePath;
+						$commandUnzip = "; /usr/bin/unzip -o " . $theFullFilePath;
+						if ($statusCheck > 0) {
+							// Exclude dot directories and files in subdirectories. 
+							// NOTE: Top level dot directories and files 
+							// cannot be excluded by unzip -x option.
+							$commandUnzip .= " -x '*/.*'";
+							$strResultArchiveExtract .= '<br/>Ignored ' . 
+								$statusCheck .
+								' directories/files in ' .
+								substr($theFullFilePath, $idxLast + 1) .
+								' that start with a ".".';
+						}
+
 
 						// Extract file.
-						shell_exec( $commandCd . $commandUnzip);
+						shell_exec($commandCd . $commandUnzip);
 					}
-					else if (($idxStart = strlen($theFullFilePath) - strlen(".tar.gz")) >= 0 && 
-						stripos($theFullFilePath, ".tar.gz", $idxStart) !== false) {
+					else if ((($idxStart = strlen($theFullFilePath) - strlen(".tar.gz")) >= 0 && 
+						stripos($theFullFilePath, ".tar.gz", $idxStart) !== false) ||
+						(($idxStart = strlen($theFullFilePath) - strlen(".tar")) >= 0 && 
+						stripos($theFullFilePath, ".tar", $idxStart) !== false)) {
 
-						// Handle .tar.gz file expansion.
+						// Handle .tar.gz and .tar file expansion.
 
-						// gunzip file command
-						$commandGunzip = "; /bin/gunzip -c " . $theFullFilePath . " | tar xf -";
-
-						// Extract file.
-						shell_exec( $commandCd . $commandGunzip);
-					}
-					else if (($idxStart = strlen($theFullFilePath) - strlen(".tar")) >= 0 && 
-						stripos($theFullFilePath, ".tar", $idxStart) !== false) {
-
-						// Handle .tar file expansion.
+						// Check for dot directories/files
+						$statusCheck = checkDotDirFilesBeforeExtraction($theDir, 
+							$theFullFilePath,
+							"tar");
+						if ($statusCheck === false) {
+							// Ignore this zip file.
+							$strResultArchiveExtract .= "<br/>UnzippedError:" . 
+								'Problem extracting from ' . 
+								substr($theFullFilePath, $idxLast + 1) . ".";
+							continue;
+						}
 
 						// untar file command
-						$commandUntar = "; /bin/tar -xf " . $theFullFilePath;
+						$commandUntar = "; /usr/bin/tar ";
+						if ($statusCheck > 0) {
+							// Exclude dot directories and files in subdirectories. 
+							// NOTE: Top level dot directories and files 
+							// cannot be excluded by unzip -x option.
+							$commandUntar .= " --exclude='.*' ";
+							$strResultArchiveExtract .= '<br/>Ignored ' . 
+								$statusCheck .
+								' directories/files in ' .
+								substr($theFullFilePath, $idxLast + 1) .
+								' that start with a ".".';
+						}
+						$commandUntar .= "-xf " . $theFullFilePath;
 
 						// Extract file.
 						shell_exec( $commandCd . $commandUntar);
@@ -283,6 +386,12 @@ function handleFileChange($cmd, &$result, $args, $elfinder) {
 
 	$command = $indexer . ' ' . $conf->data->docroot . '/study/study'.$_REQUEST['study'].'/files 2>&1';
 	$log .= $command;
+
+	// Result of archive extraction.
+	if (trim($strResultArchiveExtract) != "") {
+		$log .= "***information***" . $strResultArchiveExtract . "***";
+	}
+
 	$log .= shell_exec( $command );
 	//append log file
 	$logfile = '../logs/log'.$_REQUEST['study'].'.txt';
