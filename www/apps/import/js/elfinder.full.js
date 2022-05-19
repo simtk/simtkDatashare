@@ -3220,8 +3220,29 @@ var elFinder = function(elm, opts, bootCallback) {
 		
 		// SimTK NOTE: Refresh the UI when file has been uploaded.
 
+		var dataQuota = new Array();
+		// Get parameters from import form.
+		var token = $("form[name=form-import] input:hidden[name=token]").val();
+		var userId = $("form[name=form-import] input:hidden[name=userid]").val();
+		var groupId = $("form[name=form-import] input:hidden[name=groupid]").val();
+		var studyId = $("form[name=form-import] input:hidden[name=studyid]").val();
+		dataQuota.push({name: "userid", value: userId});
+		dataQuota.push({name: "token", value: token});
+		dataQuota.push({name: "studyid", value: studyId});
+		dataQuota.push({name: "groupid", value: groupId});
+		dataQuota.push({name: "section", value: "datashare"});
+		$.ajax({
+			type: "POST",
+			data: dataQuota,
+			dataType: "json",
+			url: "/user/checkquota.php",
+			async: false,
+			}).done(function(res) {
+		}).fail(function(res) {
+		});
+
+
 		// Retrieve the study id from hidden parameter in the "form-browse" form.
-		var studyId = $("form[name=form-browse] input:hidden[name=studyid]").val();
 		var theData = new Array();
 		theData.push({name: "StudyId", value: studyId});
 
@@ -6184,6 +6205,8 @@ elFinder.prototype = {
 					var ok_diskusage = false;
 					var total_bytes = false;
 					var allowed_bytes = false;
+					var str_total_bytes = false;
+					var str_allowed_bytes = false;
 
 					var theData = new Array();
 					// Get parameters from import form.
@@ -6209,6 +6232,22 @@ elFinder.prototype = {
 							ok_diskusage = res.ok_diskusage;
 							total_bytes = Number(res.total_bytes);
 							allowed_bytes = Number(res.allowed_bytes);
+
+							// Format the bytes usage.
+							if (Math.floor(total_bytes/1024) > 0) {
+								str_total_bytes = (total_bytes/1024).toFixed(2) + " KB";
+								str_allowed_bytes = (allowed_bytes/1024).toFixed(2) + " KB";
+
+								if (Math.floor(total_bytes/1024/1024) > 0) {
+									str_total_bytes = (total_bytes/1024/1024).toFixed(2) + " MB";
+									str_allowed_bytes = (allowed_bytes/1024/1024).toFixed(2) + " MB";
+
+									if (Math.floor(total_bytes/1024/1024/1024) > 0) {
+										str_total_bytes = (total_bytes/1024/1024/1024).toFixed(2) + " GB";
+										str_allowed_bytes = (allowed_bytes/1024/1024/1024).toFixed(2) + " GB";
+									}
+								}
+							}
 						}
 					}).fail(function(res) {
 					});
@@ -6220,7 +6259,7 @@ elFinder.prototype = {
 						if (total_bytes != false && allowed_bytes != false) {
 							// Disk space used exceeded project quota.
 							// Display warning message. Do not proceed with import.
-							$(".du_warning_msg").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Total disk space used (' + total_bytes + ' GB) exceeded project quota (' + allowed_bytes + ' GB). Please contact SimTK WebMaster.</b></div>');
+							$(".du_warning_msg").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Total disk space used (' + str_total_bytes + ') exceeded project quota (' + str_allowed_bytes + '). Please contact SimTK WebMaster.</b></div>');
 							$(".du_warning_msg")[0].scrollIntoView(false);
 
 							return;
@@ -6229,8 +6268,8 @@ elFinder.prototype = {
 							// Cannot get disk usage or project quota.
 							// Proceed to import data.
 							// Show a message in console.
-							console.log("total bytes: " + total_bytes + 
-								"; allowed bytes: " + allowed_bytes);
+							console.log("total bytes: " + str_total_bytes + 
+								"; allowed bytes: " + str_allowed_bytes);
 						}
 					}
 					else {

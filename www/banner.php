@@ -161,6 +161,8 @@ function importHandler() {
 	var ok_diskusage = false;
 	var total_bytes = false;
 	var allowed_bytes = false;
+	var str_total_bytes = "";
+	var str_allowed_bytes = "";
 
 	// Check validity of user and study.
 	var theData = new Array();
@@ -182,6 +184,22 @@ function importHandler() {
 			ok_diskusage = res.ok_diskusage;
 			total_bytes = Number(res.total_bytes);
 			allowed_bytes = Number(res.allowed_bytes);
+
+			// Format the bytes usage.
+			if (Math.floor(total_bytes/1024) > 0) {
+				str_total_bytes = (total_bytes/1024).toFixed(2) + " KB";
+				str_allowed_bytes = (allowed_bytes/1024).toFixed(2) + " KB";
+
+				if (Math.floor(total_bytes/1024/1024) > 0) {
+					str_total_bytes = (total_bytes/1024/1024).toFixed(2) + " MB";
+					str_allowed_bytes = (allowed_bytes/1024/1024).toFixed(2) + " MB";
+
+					if (Math.floor(total_bytes/1024/1024/1024) > 0) {
+						str_total_bytes = (total_bytes/1024/1024/1024).toFixed(2) + " GB";
+						str_allowed_bytes = (allowed_bytes/1024/1024/1024).toFixed(2) + " GB";
+					}
+				}
+			}
 		}
 	}).fail(function(res) {
 	});
@@ -194,7 +212,7 @@ function importHandler() {
 			// Disk space used exceeded project quota.
 			// Display message.
 			// Do not proceed to the import page.
-			$(".du_warning_msg").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Total disk space used (' + total_bytes + ' GB) exceeded project quota (' + allowed_bytes + ' GB). Please contact SimTK WebMaster.</b></div>');
+			$(".du_warning_msg").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Total disk space used (' + str_total_bytes + ') exceeded project quota (' + str_allowed_bytes + '). Please contact SimTK WebMaster.</b></div>');
 			$(".du_warning_msg")[0].scrollIntoView(false);
 
 			event.preventDefault();
