@@ -1,6 +1,6 @@
 #! /usr/bin/perl
 
-# Copyright 2020-2021, SimTK DataShare Team
+# Copyright 2020-2022, SimTK DataShare Team
 #
 # This file is part of SimTK DataShare. Initial development
 # was funded under NIH grants R01GM107340 and U54EB020405
@@ -34,6 +34,7 @@ our $dynamic_query = "$Mobilize::Conf->{ node }{ interpreter } $Mobilize::Conf->
 
 system( "cd $cache && $parser $path > metadata$studyid.html" );
 system( "cd $cache && NODE_PATH=$Mobilize::Conf->{ node }{ path } $indexer" );
+system( "cd $cache && /usr/bin/php $Mobilize::Conf->{ prefix }/bin/index/convertIndexFile.php $studyid" );
 system( "cd $cache && NODE_PATH=$Mobilize::Conf->{ node }{ path } $dynamic_query" );
 
 if( -e "$cache/study$studyid-fields.js" ) {
