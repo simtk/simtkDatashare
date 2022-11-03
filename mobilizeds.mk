@@ -1,4 +1,4 @@
-# Copyright 2020-2021, SimTK DataShare Team
+# Copyright 2020-2022, SimTK DataShare Team
 #
 # This file is part of SimTK DataShare. Initial development
 # was funded under NIH grants R01GM107340 and U54EB020405
@@ -7,10 +7,9 @@
 # are funded by NIH grant R01GM124443.
 
 snapshot:
-	@echo Manually creating a snapshot of the filestore for users to download
+	@echo Create and clean up snapshots of the filestore for users to download
 	/usr/bin/perl bin/snapshot/dailyx
 
 cleanup:
-	@echo Manually cleaning up the downloads directory of old queries \(see script for minimum age\)
+	@echo Clean up downloads directory of old queries \(see script for minimum age\)
 	/usr/bin/perl bin/cleanup/downloads
-	/usr/bin/perl bin/cleanup/releases

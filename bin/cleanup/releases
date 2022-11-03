@@ -18,7 +18,7 @@ my $path = "/home/mobilizeds/releases";
 
 foreach my $file (<$path/*.gz>) {    
     if ( -M $file > $expiration ) {
-        print "\n Deleting the log file more than 2 days old: " . $file; 
+        print "\n Deleting files more than " . $expiration . " days old: " . $file; 
         unlink $file; #or die "\nFailed to remove $file: $!";
     }
 }

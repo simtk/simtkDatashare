@@ -14,7 +14,9 @@ require_once('/var/www/user/server.php');
 require_once("fileUtils.php");
 
 function sendMsgZipFileCreation($status, $reason) {
-	echo date("Y-m-d H:i:s") . ": $status: $reason\n";
+	$fp = fopen("/var/log/apache2/zipdownload.txt", "a+");
+	fwrite($fp, date("Y-m-d H:i:s") . ": $status: $reason\n");
+	fclose($fp);
 }
 
 if (!class_exists("ZipArchive")) {

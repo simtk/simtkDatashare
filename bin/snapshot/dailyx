@@ -1,6 +1,6 @@
 #! /usr/bin/perl
 
-# Copyright 2020-2021, SimTK DataShare Team
+# Copyright 2020-2022, SimTK DataShare Team
 #
 # This file is part of SimTK DataShare. Initial development
 # was funded under NIH grants R01GM107340 and U54EB020405
@@ -15,27 +15,62 @@
 # release when the data has changed.
 # ------------------------------------------------------------
 
-use lib qw( lib /usr/local/mobilizeds/lib );
+use lib qw( /usr/local/mobilizeds/lib );
 use Mobilize;
 use Mobilize::Study;
 use Getopt::Long;
+use Time::Local;
+use Scalar::Util qw(looks_like_number);
 
 my $prefix = $Mobilize::Conf->{ prefix };
-#my $study  = $Mobilize::Conf->{ study }{ id };
-my $study  = "study10";
+my $pathReleases = "$prefix/releases";
+my $pathStudies = "$prefix/study";
 my $policy = $Mobilize::Conf->{ cleanup }{ releases }{ keep };
+my $expire = $Mobilize::Conf->{ cleanup }{ releases }{ expire };
 
-our $check = 0;
-GetOptions( "check|c" => \$check );
-
-for (my $study=1; $study <= 50; $study++) {
-
-  my $token =  "$prefix/data/$study.need-new-snapshot";
-
-  if( ! $check || -e $token ) {
-	my $study   = new Mobilize::Study( $study );
-	my $release = $study->release( $policy );
-	unlink $token;
+# Go through all studies.
+foreach my $dirStudy (<$pathStudies/study*>) {
+  # Get study id.
+  $idxStart = rindex($dirStudy, "/study");
+  if ($idxStart == -1) {
+    # Study not found. Skip.
+    next;
+  }
+  $theStudy = substr($dirStudy, $idxStart + 6);
+  if (!looks_like_number($theStudy)) {
+    # Not a number. Skip.
+    next;
   }
 
+  my $token =  "$prefix/data/study$theStudy.need-new-snapshot";
+
+  # Check whether any dir/file(s) changed within the study in the past day or
+  # token for new snapshot generation exists.
+  # If so, generate a new release.
+  my @changedFiles = split /\n/, `find $dirStudy/files -mtime -1 -print`;
+  my $changedCount = int(@changedFiles);
+  if ($changedCount > 0 || -e $token) {
+    # File(s) changed. Create new release.
+    my $study   = new Mobilize::Study( $theStudy );
+    my $release = $study->release( $policy );
+
+    # Remove token for new snapshot generation.
+    if (-e $token) {
+      unlink $token;
+    }
+
+    # Check if there are release files of this study 
+    # older than configured expiration interval.
+    # Add 12 hours in case past release generation finished early.
+    my $theTimeExpired = time() - 43200 - (86400 * $expire);
+    foreach my $file (<$pathReleases/study$theStudy-release*.gz>) {
+      my $mtime=(stat($file))[10];
+      if ($mtime < $theTimeExpired) {
+        # Remove old release file.
+        unlink $file;
+      }
+    }
+  }
 }
+
+
