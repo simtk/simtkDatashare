@@ -18208,6 +18208,28 @@ $.fn.elfindercwd = function(fm, options) {
 							added = true;
 						}
 					});
+
+					// SimTK NOTE: File changed. Refresh metadata parse result, if any.
+					// Retrieve the study id from hidden parameter in the "form-browse" form.
+					var studyId = $("form[name=form-browse] input:hidden[name=studyid]").val();
+					var theData = new Array();
+					theData.push({name: "StudyId", value: studyId});
+					$.ajax({
+						type: "POST",
+						data: theData,
+						dataType: "json",
+						url: "getstatus.php",
+						async: false,
+					}).done(function(res) {
+						if (res.indexOf("***DELETION***") != -1) {
+							$("div.container").find("#importStatus").html("");
+						}
+						else {
+							$("div.container").find("#importStatus").html("<span><b>Import Status:</b><br/>" + res + "</span>");
+						}
+					}).fail(function() {
+					});
+
 				}
 				
 				if (added) {
@@ -32022,6 +32044,7 @@ elFinder.prototype.commands.quicklook.plugins = [
 						ql.window.append(encSelect);
 					}
 					loading.remove();
+
 				});
 			}
 		});
