@@ -89,6 +89,9 @@ include_once("../../baseIncludes.php");
 .panel-primary {
 	min-height: 481px;
 }
+.ui-resizable-handle {
+	display:none !important;
+}
 </style>
 
 </head>
