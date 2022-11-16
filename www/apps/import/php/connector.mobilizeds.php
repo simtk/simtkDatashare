@@ -308,11 +308,9 @@ function handleFileChange($cmd, &$result, $args, $elfinder) {
 							// NOTE: Top level dot directories and files 
 							// cannot be excluded by unzip -x option.
 							$commandUnzip .= " -x '*/.*'";
-							$strResultArchiveExtract .= '<br/>Ignored ' . 
-								$statusCheck .
-								' directories/files in ' .
+							$strResultArchiveExtract .= '<br/>' . 
 								substr($theFullFilePath, $idxLast + 1) .
-								' that start with a ".".';
+								' was uploaded but some directories/files were not extracted. Please remove directories/files that start with a "." from the zip file.';
 						}
 
 
@@ -345,11 +343,9 @@ function handleFileChange($cmd, &$result, $args, $elfinder) {
 							// NOTE: Top level dot directories and files 
 							// cannot be excluded by unzip -x option.
 							$commandUntar .= " --exclude='.*' ";
-							$strResultArchiveExtract .= '<br/>Ignored ' . 
-								$statusCheck .
-								' directories/files in ' .
+							$strResultArchiveExtract .= '<br/>' . 
 								substr($theFullFilePath, $idxLast + 1) .
-								' that start with a ".".';
+								' was uploaded but some directories/files were not extracted. Please remove directories/files that start with a "." from the tar file.';
 						}
 						$commandUntar .= "-xf " . $theFullFilePath;
 

@@ -3260,7 +3260,7 @@ var elFinder = function(elm, opts, bootCallback) {
 				$("div.container").find("#importStatus").html("");
 			}
 			else {
-				$("div.container").find("#importStatus").html("<span><b>Import Status:</b><br/>" + res + "</span>");
+				$("div.container").find("#importStatus").html("<span><b>Import Status</b><br/>" + res + "</span>");
 				// Not deletion.
 				// Check whether metadata is present for Upload.
 				$.ajax({
@@ -8987,7 +8987,7 @@ elFinder.prototype = {
 					$("div.container").find("#importStatus").html("");
 				}
 				else {
-					$("div.container").find("#importStatus").html("<span><b>Import Status:</b><br/>" + res + "</span>");
+					$("div.container").find("#importStatus").html("<span><b>Import Status</b><br/>" + res + "</span>");
 				}
 			}).fail(function() {
 			});
@@ -18225,7 +18225,7 @@ $.fn.elfindercwd = function(fm, options) {
 							$("div.container").find("#importStatus").html("");
 						}
 						else {
-							$("div.container").find("#importStatus").html("<span><b>Import Status:</b><br/>" + res + "</span>");
+							$("div.container").find("#importStatus").html("<span><b>Import Status</b><br/>" + res + "</span>");
 						}
 					}).fail(function() {
 					});
