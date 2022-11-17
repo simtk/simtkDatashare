@@ -398,12 +398,17 @@ $(document).ready(function() {
 		if (myMinute.length < 2) {
 			myMinute = '0' + myMinute;
 		}
+		mySec = '' + myDate.getSeconds();
+		if (mySec.length < 2) {
+			mySec = '0' + mySec;
+		}
 		var filename = 'study<?= $studyid ?>-' + 
-			myYear + "-" +
-			myMonth + "-" +
-			myDay + "-" +
-			myHour + "-" +
-			myMinute;
+			myYear + 
+			myMonth +
+			myDay +
+			myHour +
+			myMinute +
+			mySec;
 		$( '#filename' ).attr( 'placeholder', filename );
 	};
 
