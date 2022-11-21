@@ -4,7 +4,7 @@
  * http://elfinder.org
  * 
  * Copyright 2009-2020, Studio 42
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2022, SimTK Team
  * Licensed under a 3-clauses BSD license
  */
 (function(root, factory) {
@@ -3220,8 +3220,29 @@ var elFinder = function(elm, opts, bootCallback) {
 		
 		// SimTK NOTE: Refresh the UI when file has been uploaded.
 
+		var dataQuota = new Array();
+		// Get parameters from import form.
+		var token = $("form[name=form-import] input:hidden[name=token]").val();
+		var userId = $("form[name=form-import] input:hidden[name=userid]").val();
+		var groupId = $("form[name=form-import] input:hidden[name=groupid]").val();
+		var studyId = $("form[name=form-import] input:hidden[name=studyid]").val();
+		dataQuota.push({name: "userid", value: userId});
+		dataQuota.push({name: "token", value: token});
+		dataQuota.push({name: "studyid", value: studyId});
+		dataQuota.push({name: "groupid", value: groupId});
+		dataQuota.push({name: "section", value: "datashare"});
+		$.ajax({
+			type: "POST",
+			data: dataQuota,
+			dataType: "json",
+			url: "/user/checkquota.php",
+			async: false,
+			}).done(function(res) {
+		}).fail(function(res) {
+		});
+
+
 		// Retrieve the study id from hidden parameter in the "form-browse" form.
-		var studyId = $("form[name=form-browse] input:hidden[name=studyid]").val();
 		var theData = new Array();
 		theData.push({name: "StudyId", value: studyId});
 
@@ -3239,7 +3260,7 @@ var elFinder = function(elm, opts, bootCallback) {
 				$("div.container").find("#importStatus").html("");
 			}
 			else {
-				$("div.container").find("#importStatus").html("<span><b>Import Status:</b><br/>" + res + "</span>");
+				$("div.container").find("#importStatus").html("<span><b>Import Status</b><br/>" + res + "</span>");
 				// Not deletion.
 				// Check whether metadata is present for Upload.
 				$.ajax({
@@ -6179,6 +6200,82 @@ elFinder.prototype = {
 					dfrd.resolve(renames, hashes);
 				},
 				check = function() {
+
+					// SimTK NOTE: Check disk usage before import.
+					var ok_diskusage = false;
+					var total_bytes = false;
+					var allowed_bytes = false;
+					var str_total_bytes = false;
+					var str_allowed_bytes = false;
+
+					var theData = new Array();
+					// Get parameters from import form.
+					var token = $("form[name=form-import] input:hidden[name=token]").val();
+					var userId = $("form[name=form-import] input:hidden[name=userid]").val();
+					var groupId = $("form[name=form-import] input:hidden[name=groupid]").val();
+					var studyId = $("form[name=form-import] input:hidden[name=studyid]").val();
+					theData.push({name: "userid", value: userId});
+					theData.push({name: "token", value: token});
+					theData.push({name: "studyid", value: studyId});
+					theData.push({name: "groupid", value: groupId});
+					theData.push({name: "section", value: "datashare"});
+					$.ajax({
+						type: "POST",
+						data: theData,
+						dataType: "json",
+						url: "/user/checkstudy.php",
+						async: false,
+					}).done(function(res) {
+						// Note: Result is already JSON-decoded.
+						if (res.status) {
+							// Study is valid. Get disk usage info.
+							ok_diskusage = res.ok_diskusage;
+							total_bytes = Number(res.total_bytes);
+							allowed_bytes = Number(res.allowed_bytes);
+
+							// Format the bytes usage.
+							if (Math.floor(total_bytes/1024) > 0) {
+								str_total_bytes = (total_bytes/1024).toFixed(2) + " KB";
+								str_allowed_bytes = (allowed_bytes/1024).toFixed(2) + " KB";
+
+								if (Math.floor(total_bytes/1024/1024) > 0) {
+									str_total_bytes = (total_bytes/1024/1024).toFixed(2) + " MB";
+									str_allowed_bytes = (allowed_bytes/1024/1024).toFixed(2) + " MB";
+
+									if (Math.floor(total_bytes/1024/1024/1024) > 0) {
+										str_total_bytes = (total_bytes/1024/1024/1024).toFixed(2) + " GB";
+										str_allowed_bytes = (allowed_bytes/1024/1024/1024).toFixed(2) + " GB";
+									}
+								}
+							}
+						}
+					}).fail(function(res) {
+					});
+
+					// Clear previous message first.
+					$(".du_warning_msg").html('');
+
+					if (!ok_diskusage) {
+						if (total_bytes != false && allowed_bytes != false) {
+							// Disk space used exceeded project quota.
+							// Display warning message. Do not proceed with import.
+							$(".du_warning_msg").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Total disk space used (' + str_total_bytes + ') exceeds project quota (' + str_allowed_bytes + '). No more files can be added to this project.</b></div>');
+							$(".du_warning_msg")[0].scrollIntoView(false);
+
+							return;
+						}
+						else {
+							// Cannot get disk usage or project quota.
+							// Proceed to import data.
+							// Show a message in console.
+							console.log("total bytes: " + str_total_bytes + 
+								"; allowed bytes: " + str_allowed_bytes);
+						}
+					}
+					else {
+				        	// Total disk usage is ok.
+					}
+
 					var existed = [], exists = [], i, c,
 						pathStr = target !== fm.cwd().hash? fm.path(target, true) + fm.option('separator', target) : '',
 						// SimTK NOTE: Confirmation dialog for archive overwriting.
@@ -8890,7 +8987,7 @@ elFinder.prototype = {
 					$("div.container").find("#importStatus").html("");
 				}
 				else {
-					$("div.container").find("#importStatus").html("<span><b>Import Status:</b><br/>" + res + "</span>");
+					$("div.container").find("#importStatus").html("<span><b>Import Status</b><br/>" + res + "</span>");
 				}
 			}).fail(function() {
 			});
@@ -18111,6 +18208,28 @@ $.fn.elfindercwd = function(fm, options) {
 							added = true;
 						}
 					});
+
+					// SimTK NOTE: File changed. Refresh metadata parse result, if any.
+					// Retrieve the study id from hidden parameter in the "form-browse" form.
+					var studyId = $("form[name=form-browse] input:hidden[name=studyid]").val();
+					var theData = new Array();
+					theData.push({name: "StudyId", value: studyId});
+					$.ajax({
+						type: "POST",
+						data: theData,
+						dataType: "json",
+						url: "getstatus.php",
+						async: false,
+					}).done(function(res) {
+						if (res.indexOf("***DELETION***") != -1) {
+							$("div.container").find("#importStatus").html("");
+						}
+						else {
+							$("div.container").find("#importStatus").html("<span><b>Import Status</b><br/>" + res + "</span>");
+						}
+					}).fail(function() {
+					});
+
 				}
 				
 				if (added) {
@@ -31925,6 +32044,7 @@ elFinder.prototype.commands.quicklook.plugins = [
 						ql.window.append(encSelect);
 					}
 					loading.remove();
+
 				});
 			}
 		});

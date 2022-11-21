@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Copyright 2020-2021, SimTK DataShare Team
+ * Copyright 2020-2022, SimTK DataShare Team
  *
- * This file is part of SimTK DataShare. Initial development
- * was funded under NIH grants R01GM107340 and U54EB020405
- * and the U.S. Army Medical Research & Material Command award
- * W81XWH-15-1-0232R01. Continued maintenance and enhancement
+ * This file is part of SimTK DataShare. Initial development 
+ * was funded under NIH grants R01GM107340 and U54EB020405 
+ * and the U.S. Army Medical Research & Material Command award 
+ * W81XWH-15-1-0232R01. Continued maintenance and enhancement 
  * are funded by NIH grant R01GM124443.
  */
 
@@ -31,11 +31,32 @@
 		$numchar = $pos2 - $pos1;
 		$numchar = $numchar - 1;
 		$date = substr($mystring, $pos1, $numchar);
-		$status = "$date] Import completed.";
+		$status = "$date] ";
 	}
 
 	// Get parse result and make it more user-friendly.
-	$strRes = getParseResult($mystring);
+	$strRes = getParseResult($mystring, $strInfo);
+
+	// Get message from unzip operation.
+	if ($strInfo != "") {
+		$arrStrInfo = explode("<br/>", $strInfo);
+		foreach ($arrStrInfo as $theInfo) {
+			$theInfo = trim($theInfo);
+			// Check for empty string.
+			if ($theInfo == "") {
+				continue;
+			}
+			if (strpos($theInfo, "UnzippedError:") !== false) {
+				$status .= "<br/><b style='color:red;'>" . 
+					substr($theInfo, strlen("UnzippedError:")) . 
+					"</b>";
+			}
+			else {
+				$status .= "<br/><b style='color:orange;'>" . $theInfo . "</b>";
+			}
+		}
+	}
+
 	if (strpos($mystring, "Error") !== false ||
 		strpos($mystring, "parser") !== false ||
 		strpos($mystring, "***error***") !== false) {
@@ -56,16 +77,15 @@
 
 		// Close tag and add line break.
 		$strRes = str_replace("\n", "</b><br/>", $strRes);
-		$status = "$date] <br/>" . $strRes;
+		$status .= "<br/>" . $strRes;
 	}
 	else if (strpos($mystring, "expected") !== false) {
-		$status = "$date] <b style='color:red;'><br/>Check metadata files. An expected character error was encountered during import.<br/>";
+		$status .= "<br/><b style='color:red;'><br/>Check metadata files. An expected character error was encountered during import.<br/>";
 	}
 	else if (strpos($strRes, "***warning***") !== false) {
-		$status = "$date] <br/>";
 		$strRes = str_replace("***warning***", "<b style='color:orange;'>Check metadata file in folder ", $strRes);
 		$strRes = str_replace("\n", "</b><br/>", $strRes);
-		$status .= $strRes;
+		$status .= "<br/>" . $strRes;
 	}
 	else if (strpos($mystring, "RM: removed") !== false) {
 		// Removal from trash.
@@ -79,13 +99,17 @@
 			$status = "***DELETION***";
 		}
 	}
+	else {
+		$status .= "<br/>Import completed.";
+	}
 
 	echo json_encode($status);
 
 
 // Generate user-friendly parse result.
-function getParseResult($strLog) {
+function getParseResult($strLog, &$strInfo) {
 
+	$strInfo = "";
 	$strRes = "";
 	$strToken = " 2>&1";
 	$idxStart = stripos($strLog, $strToken);
@@ -94,6 +118,18 @@ function getParseResult($strLog) {
 		$idxEnd = stripos($strTmp, "CREATE TABLE");
 		if ($idxEnd !== false) {
 			$strRes = trim(substr($strTmp, 0, $idxEnd));
+		}
+	}
+
+	// Get information message if present.
+	if (strpos($strRes, "***information***") !== false) {
+		// Skip leading "***information***".
+		$idxInfoEnd = strpos($strRes, "***", 17);
+		if ($idxInfoEnd !== false) {
+			$strInfo = substr($strRes, 17, $idxInfoEnd - 17);
+
+			// Advance parse result to after information message.
+			$strRes = substr($strRes, $idxInfoEnd + 3);
 		}
 	}
 

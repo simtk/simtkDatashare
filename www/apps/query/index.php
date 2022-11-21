@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2020-2021, SimTK DataShare Team
+ * Copyright 2020-2022, SimTK DataShare Team
  *
  * This file is part of SimTK DataShare. Initial development
  * was funded under NIH grants R01GM107340 and U54EB020405
@@ -78,7 +78,6 @@ include_once("../../baseIncludes.php");
 
 <script src="/include/js/mobilize.js"></script>
 <script src="/include/js/study<?=$studyid;?>-fields.js?<?= time();?>"></script>
-<script src="/include/js/add-ons/moment.min.js"></script>
 <link href="/include/jquery/add-ons/query-builder/query-builder.default.min.css" rel="stylesheet" id="qb-theme" />
 <script src="/include/jquery/add-ons/query-builder/query-builder.standalone.min.js"></script>
 <link href="/include/bootstrap/add-ons/select/css/bootstrap-select.min.css" rel="stylesheet" />
@@ -239,7 +238,7 @@ $(document).ready(function() {
 
 <div class="container">
 
-<?php $relative_url = "../../"; include( $relative_url . "banner.php" ); ?>
+<?php $relative_url = "../../"; require_once( $relative_url . "banner.php" ); ?>
 
 	<br /><br />
 
@@ -375,16 +374,45 @@ $(document).ready(function() {
 			$( '#get-data-panel' ) .collapse( 'hide' );
 		}
 
-		updatePlaceholder();
+		//updatePlaceholder();
 	});
 
 	// ===== BEHAVIOR FOR GET DATA BUTTON
 	var updatePlaceholder = function() {
-		var filename = 'study<?= $studyid ?>-' + moment().format( 'YYYY-MM-DD-hh-mm' );
+		// Generate current date.
+		var myDate = new Date();
+		myYear = myDate.getFullYear();
+		myMonth = '' + (myDate.getMonth() + 1);
+		if (myMonth.length < 2) {
+			myMonth = '0' + myMonth;
+		}
+		myDay = '' + myDate.getDate();
+		if (myDay.length < 2) {
+			myDay = '0' + myDay;
+		}
+		myHour = '' + myDate.getHours();
+		if (myHour.length < 2) {
+			myHour = '0' + myHour;
+		}
+		myMinute = '' + myDate.getMinutes();
+		if (myMinute.length < 2) {
+			myMinute = '0' + myMinute;
+		}
+		mySec = '' + myDate.getSeconds();
+		if (mySec.length < 2) {
+			mySec = '0' + mySec;
+		}
+		var filename = 'study<?= $studyid ?>-' + 
+			myYear + 
+			myMonth +
+			myDay +
+			myHour +
+			myMinute +
+			mySec;
 		$( '#filename' ).attr( 'placeholder', filename );
 	};
 
-	updatePlaceholder();
+	//updatePlaceholder();
 	var request = undefined;
 	var request_stats = undefined;
 	var query_hold;
@@ -392,6 +420,8 @@ $(document).ready(function() {
 
 	// ===== BEHAVIOR FOR SUBMITTING A QUERY
 	$( '#submit-query' ).click( function() {
+		// Update filename placeholder.
+		updatePlaceholder();
 		var rules = $( '#builder' ).queryBuilder( 'getRules' );
 			var url   = '<?= $conf->apache->baseurl ?>/request/query';
 			var url_stats   = '<?= $conf->apache->baseurl ?>/request/insertStats';

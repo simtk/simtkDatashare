@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2020-2021, SimTK DataShare Team
+ * Copyright 2020-2022, SimTK DataShare Team
  *
  * This file is part of SimTK DataShare. Initial development
  * was funded under NIH grants R01GM107340 and U54EB020405
@@ -82,6 +82,18 @@ include_once("../../baseIncludes.php");
 		});
 	});
 </script>
+<style>
+.panel-body {
+	min-height: 440px;
+}
+.panel-primary {
+	min-height: 481px;
+}
+.ui-resizable-handle {
+	display:none !important;
+}
+</style>
+
 </head>
 
 <body>
@@ -90,9 +102,12 @@ include_once("../../baseIncludes.php");
 	<?php $relative_url = "../../"; include( $relative_url . "banner.php" ); ?>
 
 	<br/>
-	<b>File Upload:</b><br/>
-	<p>Upload files by dragging and dropping them in the "Import and Edit Data" window below.  <b>Note: Filenames that start with a "." cannot be uploaded.</b> SimTK will automatically expand files with the following suffixes: .zip, .tar.gz, .tar.</p>
-	<b>Enabling Query:</b><br/>
+	<b>File Upload</b><br/>
+<ul>
+<li>Upload files by dragging and dropping them in the "Import and Edit Data" window below.  <b>Note: Filenames that start with a "." cannot be uploaded.</b></li>
+<li><b>Compressed files (.zip, .tar.gz, .tar):</b> SimTK will automatically expand compressed files. <b>For the automatic expansion to work propoerly, none of the file and directory names can start with a "."</b></li>
+</ul>
+	<b>Enabling Query</b><br/>
 	<p>To enable querying of your dataset, you need to <a style="color:#f75236;" href="metadata.php" target="_blank">provide metadata</a>. Metadata can be provided explicitly via a file or implicitly via your directory structure.</p><br/>
 	<div id="importStatus"></div>
 	<br/>
@@ -172,7 +187,7 @@ include_once("../../baseIncludes.php");
 				$("div.container").find("#importStatus").html("");
 			}
 			else {
-				$("div.container").find("#importStatus").html("<span><b>Import Status:</b><br/>" + res + "</span>");
+				$("div.container").find("#importStatus").html("<span><b>Import Status</b><br/>" + res + "</span>");
 			}
 		}).fail(function() {
 		});
@@ -181,18 +196,6 @@ include_once("../../baseIncludes.php");
 </script>
 
 </div>
-
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-
-<!---
-<p><a href="" onclick="return popitup('/apps/import/getlog.php?studyid=<?= $studyid;?>')">Admin Debugging Log (Remove before release)</a></p>
---->
 
 </div>
 

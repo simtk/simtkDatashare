@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2020-2021, SimTK DataShare Team
+ * Copyright 2020-2022, SimTK DataShare Team
  *
  * This file is part of SimTK DataShare. Initial development
  * was funded under NIH grants R01GM107340 and U54EB020405
@@ -14,7 +14,9 @@ require_once('/var/www/user/server.php');
 require_once("fileUtils.php");
 
 function sendMsgZipFileCreation($status, $reason) {
-	echo date("Y-m-d H:i:s") . ": $status: $reason\n";
+	$fp = fopen("/var/log/apache2/zipdownload.txt", "a+");
+	fwrite($fp, date("Y-m-d H:i:s") . ": $status: $reason\n");
+	fclose($fp);
 }
 
 if (!class_exists("ZipArchive")) {
@@ -79,6 +81,9 @@ $userId = false;
 $token = false;
 $strFilesHash = false;
 $email = false;
+$firstName = false;
+$lastName = false;
+$groupName = false;
 $status = getNextZipFileEntry($arrDbConf, 
 	$zipfileId, 
 	$groupId, 
@@ -86,7 +91,10 @@ $status = getNextZipFileEntry($arrDbConf,
 	$userId, 
 	$token, 
 	$strFilesHash,
-	$email);
+	$email,
+	$firstName,
+	$lastName,
+	$groupName);
 if ($status == false) {
 	// Done. No new entry available for processing.
 	return;
@@ -221,14 +229,14 @@ $urlDownload = "https://" . $domain_name .
 	"token=" . $token . "&" .
 	"&namePackage=" . $nameRandDir . "/" . $strFileName;
 
-$theMsgBody = 'Helllo' .
+$theMsgBody = 'Hi ' . $firstName . " " . $lastName .
 	'<br/><br/>' .
-	'A zip file is ready for download by <a href="' .
+	'The data you requested from project "' . $groupName . '" is ready for download from <a href="' .
 	$urlDownload .
-	'">clicking this link</a>. ' .
-	'You may need to copy-and-paste the link into your browser. ' .
+	'">this link</a>. ' .
+	'You may need to copy-and-paste the link into your browser.' .
 	'<br/><br/>' .
-	'Note: if the zip file does not download, make sure you have allowed pop-ups. In most browsers, you can do this by selecting the small icon to "allow pop-ups..." in the URL bar. Once pop-ups are allowed, click the link again to download the zip file.' .
+	'Note: if the data file does not download, make sure you have allowed pop-ups. In most browsers, you can do this by selecting the small icon to "allow pop-ups..." in the URL bar. Once pop-ups are allowed, click the link again to download the data file.' .
 	'<br/><br/>' .
 	'The link will expire in 2 days.' .
 	'<br/><br/>' .
@@ -240,7 +248,7 @@ $theMsgBody = 'Helllo' .
 $headers[] = 'MIME-Version: 1.0';
 $headers[] = 'Content-type: text/html; charset=iso-8859-1';
 $headers[] = 'From: noreply@' . $domain_name;
-mail($email, 'A zip file is ready for download',
+mail($email, 'The data you requested from project "' . $groupName . '" is ready for download',
 	$theMsgBody, 
 	implode("\r\n", $headers));
 

@@ -1,6 +1,6 @@
 package Mobilize::QueryHandler;
 
-# Copyright 2020-2021, SimTK DataShare Team
+# Copyright 2020-2022, SimTK DataShare Team
 #
 # This file is part of SimTK DataShare. Initial development
 # was funded under NIH grants R01GM107340 and U54EB020405
@@ -62,6 +62,28 @@ sub rules_to_nosql {
 		};
 		my $name  = lc( $rules->{ id } );
 		my $value = $rules->{ value };
+		# Convert single quote to escaped single quote (single quote is not allowed).
+		$value =~ s/'/''''/g;
+		# Convert double quote to escaped single quote (double quote is not allowed).
+		$value =~ s/"/''''/g;
+		# Escape parentheses in value.
+		$value =~ s/\(/\\\(/g;
+		$value =~ s/\)/\\\)/g;
+		# Escape square brackets in value.
+		$value =~ s/\[/\\\[/g;
+		$value =~ s/\]/\\\]/g;
+		# Escape $ in value.
+		$value =~ s/\$/\\\$/g;
+		# Escape + in value.
+		$value =~ s/\+/\\\+/g;
+		# Escape ^ in value.
+		$value =~ s/\^/\\\^/g;
+		# Escape ? in value.
+		$value =~ s/\?/\\\?/g;
+		# Escape * in value.
+		$value =~ s/\*/\\\*/g;
+		# Escape | in value.
+		$value =~ s/\|/\\\|/g;
 
 		# ===== APPLY MAPPING
 		# If there is a study mapping human-readable entities to DB entities, apply that mapping
@@ -85,11 +107,11 @@ sub rules_to_nosql {
 
 		# Pattern matching 'like'
 		} elsif( $rules->{ operator } eq 'contains' ) {
-			return "json->>'$name' ~* '\\m$value\\M'";
+			return "json->>'$name' ~* '$value'";
 
 		# Pattern matching 'not like'
 		} elsif( $rules->{ operator } eq 'not_contains' ) {
-			return "json->'$name' !~* '\\m$value\\M'";
+			return "json->'$name' !~* '$value'";
 
 		# Some mathematical comparator
 		} elsif( $name ) {

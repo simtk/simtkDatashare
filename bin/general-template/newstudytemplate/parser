@@ -1,6 +1,6 @@
 #! /usr/bin/perl
 
-# Copyright 2020-2021, SimTK DataShare Team
+# Copyright 2020-2022, SimTK DataShare Team
 #
 # This file is part of SimTK DataShare. Initial development
 # was funded under NIH grants R01GM107340 and U54EB020405
@@ -100,26 +100,6 @@ sub parse_metadata {
 		if (open(my $fh, '<', $filename)) {
 			# Read each line from file.
 			while (my $line = <$fh>) {
-				# Check if more than one ':' is present.
-				my @strTokens = ($line =~ /:/g);
-				if (scalar(@strTokens) > 1) {
-
-					# Get number of leading spaces.
-					$line =~ m/^(\s*)/;
-					my $cntLeadSpace = length($1);
-					# String of leading spaces.
-					my $leadSpace = (' ' x $cntLeadSpace);
-
-					# Separate "type:", "unit:", "value:" 
-					# into new lines with leading spaces.
-					# (Check is case-insensitive).
-					$line =~ s/ type:/\n$leadSpace  type:/ig;
-					$line =~ s/ unit:/\n$leadSpace  unit:/ig;
-					$line =~ s/ value:/\n$leadSpace  value:/ig;
-					$line =~ s/:type:/:\n$leadSpace  type:/ig;
-					$line =~ s/:unit:/:\n$leadSpace  unit:/ig;
-					$line =~ s/:value:/:\n$leadSpace  value:/ig;
-				}
 				$myStr .= $line;
 			}
 		}

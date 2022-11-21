@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2020-2021, SimTK DataShare Team
+ * Copyright 2020-2022, SimTK DataShare Team
  *
  * This file is part of SimTK DataShare. Initial development
  * was funded under NIH grants R01GM107340 and U54EB020405
@@ -192,7 +192,10 @@ function recordZipFileEntry($arrDbConf,
 	$userId, 
 	$token, 
 	$filesHash, 
-	$email) {
+	$email,
+	$firstName,
+	$lastName,
+	$groupName) {
 
 	// Get db connection.
 	$db_connection = pg_connect("host=localhost " .
@@ -208,11 +211,14 @@ function recordZipFileEntry($arrDbConf,
 	$token = htmlspecialchars($token);
 	$filesHash = htmlspecialchars($filesHash);
 	$email = htmlspecialchars($email);
+	$firstName = htmlspecialchars($firstName);
+	$lastName = htmlspecialchars($lastName);
+	$groupName = htmlspecialchars($groupName);
 
 	$strInsert = "INSERT INTO zipfile_job " .
-		"(group_id, study_id, user_id, token, fileshash, email, add_date) " .
+		"(group_id, study_id, user_id, token, fileshash, email, add_date, firstname, lastname, groupname) " .
 		"VALUES " .
-		"($1, $2, $3, $4, $5, $6, NOW())"; 
+		"($1, $2, $3, $4, $5, $6, NOW(), $7, $8, $9)"; 
 	$result = pg_query_params($db_connection, $strInsert,
 		array(
 			$groupId,
@@ -220,7 +226,10 @@ function recordZipFileEntry($arrDbConf,
 			$userId,
 			$token,
 			$filesHash,
-			$email
+			$email,
+			$firstName,
+			$lastName,
+			$groupName
 		)
 	);
 	pg_close($db_connection);
@@ -235,7 +244,10 @@ function getNextZipFileEntry($arrDbConf,
 	&$userId,
 	&$token,
 	&$strFilesHash,
-	&$email) {
+	&$email,
+	&$firstName,
+	&$lastName,
+	&$groupName) {
 
 	// Get db connection.
 	$db_connection = pg_connect("host=localhost " .
@@ -244,7 +256,7 @@ function getNextZipFileEntry($arrDbConf,
 		"password=" . $arrDbConf["pass"]);
 
 	// Status value of 0 means zipfile is to be created.
-	$strQuery = "SELECT zipfile_id, group_id, study_id, user_id, token, fileshash, email " .
+	$strQuery = "SELECT zipfile_id, group_id, study_id, user_id, token, fileshash, email, firstname, lastname, groupname " .
 		"FROM zipfile_job " .
 		"WHERE status=0 " .
 		"ORDER BY zipfile_id " .
@@ -266,6 +278,9 @@ function getNextZipFileEntry($arrDbConf,
 		$token = $row["token"];
 		$strFilesHash = $row["fileshash"];
 		$email = $row["email"];
+		$firstName = $row["firstname"];
+		$lastName = $row["lastname"];
+		$groupName = $row["groupname"];
 	}
 
 	pg_free_result($result);
@@ -397,4 +412,75 @@ function logZipFileError($arrDbConf, $zipfileId, $status) {
 	return true;
 }
 
+// Get information of files under a directory.
+function getDirInfo($fullPathName, &$totalBytes, &$lastModified){
+
+	$totalBytes = 0;
+	$lastModified = false;
+
+	// Recursively find all files under the directory to get total size.
+	if (is_dir($fullPathName) && file_exists($fullPathName)) {
+		foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($fullPathName,
+			FilesystemIterator::SKIP_DOTS)) as $theObj) {
+
+			// Found a file.
+			$theSize = $theObj->getSize();
+			$totalBytes += $theSize;
+
+			// Get last modified time.
+			$mtime = $theObj->getMTime();
+			if (!$lastModified || $mtime > $lastModified) {
+				$lastModified = $mtime;
+			}
+		}
+	}
+}
+
+// Save directory information.
+function saveDirInfo($arrDbConf,
+	$userId,
+	$token,
+	$groupId,
+	$studyId,
+	$totalBytes,
+	$lastModified) {
+
+	include dirname(__FILE__) . "/../../../user/server.php";
+
+	$conf = file_get_contents('/usr/local/mobilizeds/conf/mobilizeds.conf');
+	$conf = json_decode($conf);
+
+	// Save disk usage.
+	$url = "https://$domain_name/plugins/api/index.php?key=$api_key" .
+		"&userid=" . $userId .
+		"&token=" . $token . 
+		"&groupid=" . $groupId .
+		"&studyid=" . $studyId .
+		"&totalbytes=" . $totalBytes .
+		"&lastmodified=" . $lastModified .
+		"&action=21" .
+		"&tool=datashare";
+
+	$context = array(
+		"ssl"=>array(
+			"verify_peer"=>false,
+			"verify_peer_name"=>false,
+		),
+	);
+	$response_study_json = file_get_contents($url, false, stream_context_create($context));
+	$response_study = json_decode($response_study_json);
+
+	if ($response_study == null || !$response_study->status) {
+		// Failed.
+		return false;
+	}
+	else {
+		// Status.
+		return $response_study->status;
+	}
+}
+
 ?>
+
+
+

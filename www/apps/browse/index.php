@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2020-2021, SimTK DataShare Team
+ * Copyright 2020-2022, SimTK DataShare Team
  *
  * This file is part of SimTK DataShare. Initial development
  * was funded under NIH grants R01GM107340 and U54EB020405
@@ -94,24 +94,20 @@ include_once("../../baseIncludes.php");
 				$(".panel-primary").height($(this).height() + 40);
 			}
 		});
-
-		// NOTE: Fixed bug in elfinder.
-		// Need to re-adjust the heights of "panel-primary" and "panel-body"
-		// to fix the elfinder layout because the vertical layout 
-		// of elfinder is sometimes incorrect.
-		// However, elfinder is not yet ready at this point, 
-		// at $(document).ready() or $(window).on("load"); its components 
-		// are not yet fully available. A delay needs to be added before any 
-		// layout adjustment can be made.
-		// This fix resize elfinder after a delay.
-		$(this).delay(300).queue(function() {
-			$(".panel-primary").height(440);
-			$(".panel-body").height(400);
-			$(window).trigger("resize");
-			$(this).dequeue();
-		});
 	});
 </script>
+
+<style>
+.panel-body {
+	min-height: 600px;
+}
+.panel-primary {
+	min-height: 641px;
+}
+.ui-resizable-handle {
+	display:none !important;
+}
+</style>
 
 <?php
 	$directory = $conf->data->docroot . "/study/study" . $studyid . '/files';

@@ -57,6 +57,12 @@ include_once("../../baseIncludes.php");
 <script src="/include/js/mobilize.js"></script>
 <script src="/include/js/study<?=$studyid;?>-fields.js?<?= time();?>"></script>
 
+<style>
+.table-responsive {
+	max-height: 600px;
+}
+</style>
+
 <?php
 
 $directory = '/usr/local/mobilizeds/study/study' . $studyid . '/files';
