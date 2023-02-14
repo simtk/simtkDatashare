@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2020-2022, SimTK DataShare Team
+ * Copyright 2020-2023, SimTK DataShare Team
  *
  * This file is part of SimTK DataShare. Initial development
  * was funded under NIH grants R01GM107340 and U54EB020405
@@ -51,7 +51,12 @@ if (!isset($arrDbConf["db"]) ||
 
 
 // Check whether there is zip file in progress.
-$cntZipInProgress = countZipFileInProgress($arrDbConf, $startDate);
+$cntZipInProgress = countZipFileInProgress($arrDbConf, 
+	$startDate,
+	$userId,
+	$groupName,
+	$studyId,
+	$fileName);
 if ($cntZipInProgress > 0) {
 	$now = time();
 	$duration = $now - $startDate;
@@ -61,12 +66,16 @@ if ($cntZipInProgress > 0) {
 		$headers[] = 'Content-type: text/html; charset=iso-8859-1';
 		$headers[] = 'From: noreply@' . $domain_name;
 		$emailAdmin = "webmaster@" . $domain_name;
-		$theMsgBody = "Zip file generation in progress has taken more than $duration seconds.";
-		mail($emailAdmin, 'A zip file for download is being generated.',
+		$theMsgBody = "Data Share zip file creation is taking more than $duration seconds.";
+		$theMsgBody .= "<br/>User ID: $userId";
+		$theMsgBody .= "<br/>Group Name: $groupName";
+		$theMsgBody .= "<br/>Study ID: $studyId";
+		$theMsgBody .= "<br/>Filename: $fileName";
+		mail($emailAdmin, 'Data Share zip file for download is being created.',
 			$theMsgBody, 
 			implode("\r\n", $headers));
 
-		sendMsgZipFileCreation("ok", "Zip file generation in progress has taken more than $duration seconds.");
+		sendMsgZipFileCreation("ok", $theMsgBody);
 	}
 
 	// Zip file creation is in progress. Do not proceed.
@@ -100,9 +109,21 @@ if ($status == false) {
 	return;
 }
 
+// Generate a randomized directory name.
+$nameRandDir = genRandDirName();
+$dirBase = $conf->data->docroot . "/downloads/" . $nameRandDir . "/";
+if (!mkdir($dirBase)) {
+	// Cannot create directory.
+	logZipFileError($arrDbConf, $zipfileId, -3);
+	sendMsgZipFileCreation("failed", "Cannot create directory: " . $nameRandDir . ".");
+	return;
+}
+$strFileName = "study" . $studyId . "-" . date("Y-m-d-H-i") . ".zip";
+$strFilePath = $dirBase . $strFileName;
+
 
 // Record start time of zipfile creation.
-$status = logZipFileStart($arrDbConf, $zipfileId);
+$status = logZipFileStart($arrDbConf, $zipfileId, $strFilePath, $strFileName);
 if ($status == false) {
 	sendMsgZipFileCreation("failed", "Cannot update start time: $zipfileId.");
 	return;
@@ -158,18 +179,6 @@ foreach ($filesHash as $key=>$fileHash) {
 	}
 }
 
-// Generate a randomized directory name.
-$nameRandDir = genRandDirName();
-$dirBase = $conf->data->docroot . "/downloads/" . $nameRandDir . "/";
-if (!mkdir($dirBase)) {
-	// Cannot create directory.
-	logZipFileError($arrDbConf, $zipfileId, -3);
-	sendMsgZipFileCreation("failed", "Cannot create directory: " . $nameRandDir . ".");
-	return;
-}
-$strFileName = "study" . $studyId . "-" . date("Y-m-d-H-i") . ".zip";
-$strFilePath = $dirBase . $strFileName;
-
 // Get total bytes to add.
 $bytesAllFiles = 0;
 foreach ($arrFilesToAdd as $theFullPath=>$theFileName) {
@@ -212,7 +221,7 @@ else {
 $zipFile->close();
 
 // Record stop time of zip file creation.
-$status = logZipFileStop($arrDbConf, $zipfileId, $strFilePath, $strFileName);
+$status = logZipFileStop($arrDbConf, $zipfileId);
 if ($status == false) {
 	sendMsgZipFileCreation("failed", "Cannot update stop time: $zipfileId.");
 	return;
@@ -253,7 +262,7 @@ mail($email, 'The data you requested from project "' . $groupName . '" is ready 
 	implode("\r\n", $headers));
 
 // Send zip file creation complete message.
-sendMsgZipFileCreation("ok", 
+sendMsgZipFileCreation("Data Share zip file created", 
 	$userId . " " . $email . ": " . 
 	$nameRandDir . "/" . $strFileName . " " .
 	"(" . $strSumFileSize . ")");

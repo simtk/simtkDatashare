@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2020-2022, SimTK DataShare Team
+ * Copyright 2020-2023, SimTK DataShare Team
  *
  * This file is part of SimTK DataShare. Initial development
  * was funded under NIH grants R01GM107340 and U54EB020405
@@ -290,37 +290,7 @@ function getNextZipFileEntry($arrDbConf,
 }
 
 // Log start time of zipfile creation.
-function logZipFileStart($arrDbConf, $zipfileId) {
-
-	// Get db connection.
-	$db_connection = pg_connect("host=localhost " .
-		"dbname=" . $arrDbConf["db"] . " " .
-		"user=" . $arrDbConf["user"] . " " .
-		"password=" . $arrDbConf["pass"]);
-
-	// Status value of 1 means zipfile creation is in progress.
-	$strUpdate = "UPDATE zipfile_job SET " .
-		"status=1, " .
-		"start_date=NOW() " .
-		"WHERE zipfile_id=$1";
-	$result = pg_query_params($db_connection, $strUpdate, 
-		array($zipfileId));
-	if (!$result || pg_affected_rows($result) != 1) {
-		// Entry not updated.
-		pg_free_result($result);
-		pg_close($db_connection);
-
-		return false;
-        }
-
-	pg_free_result($result);
-	pg_close($db_connection);
-
-	return true;
-}
-
-// Log success and stop time of zipfile creation.
-function logZipFileStop($arrDbConf, $zipfileId, $strFilePath, $strFileName) {
+function logZipFileStart($arrDbConf, $zipfileId, $strFilePath, $strFileName) {
 
 	$strFilePath = htmlspecialchars($strFilePath);
 	$strFileName = htmlspecialchars($strFileName);
@@ -331,16 +301,16 @@ function logZipFileStop($arrDbConf, $zipfileId, $strFilePath, $strFileName) {
 		"user=" . $arrDbConf["user"] . " " .
 		"password=" . $arrDbConf["pass"]);
 
-	// Status value of 2 means zipfile creation is done.
+	// Status value of 1 means zipfile creation is in progress.
 	$strUpdate = "UPDATE zipfile_job SET " .
-		"status=2, " .
+		"status=1, " .
 		"filepath=$2, " .
 		"filename=$3, " .
-		"stop_date=NOW() " .
+		"start_date=NOW() " .
 		"WHERE zipfile_id=$1";
 	$result = pg_query_params($db_connection, $strUpdate, 
 		array(
-			$zipfileId, 
+			$zipfileId,
 			$strFilePath, 
 			$strFileName
 		)
@@ -359,9 +329,47 @@ function logZipFileStop($arrDbConf, $zipfileId, $strFilePath, $strFileName) {
 	return true;
 }
 
+// Log success and stop time of zipfile creation.
+function logZipFileStop($arrDbConf, $zipfileId) {
+
+	// Get db connection.
+	$db_connection = pg_connect("host=localhost " .
+		"dbname=" . $arrDbConf["db"] . " " .
+		"user=" . $arrDbConf["user"] . " " .
+		"password=" . $arrDbConf["pass"]);
+
+	// Status value of 2 means zipfile creation is done.
+	$strUpdate = "UPDATE zipfile_job SET " .
+		"status=2, " .
+		"stop_date=NOW() " .
+		"WHERE zipfile_id=$1";
+	$result = pg_query_params($db_connection, $strUpdate, 
+		array(
+			$zipfileId
+		)
+	);
+	if (!$result || pg_affected_rows($result) != 1) {
+		// Entry not updated.
+		pg_free_result($result);
+		pg_close($db_connection);
+
+		return false;
+        }
+
+	pg_free_result($result);
+	pg_close($db_connection);
+
+	return true;
+}
+
 
 // Get count of zipfile creation in progress.
-function countZipFileInProgress($arrDbConf, &$startDate) {
+function countZipFileInProgress($arrDbConf, 
+	&$startDate,
+	&$userId,
+	&$groupName,
+	&$studyId,
+	&$fileName) {
 
 	// Get db connection.
 	$db_connection = pg_connect("host=localhost " .
@@ -370,12 +378,18 @@ function countZipFileInProgress($arrDbConf, &$startDate) {
 		"password=" . $arrDbConf["pass"]);
 
 	$startDate = false;
-	$strQuery = "SELECT FLOOR(EXTRACT(EPOCH FROM start_date)) as sd FROM zipfile_job " .
+	$strQuery = "SELECT FLOOR(EXTRACT(EPOCH FROM start_date)) as sd, " .
+		"user_id, groupname, study_id, filename " .
+		"FROM zipfile_job " .
 		"WHERE status=1";
 	$result = pg_query_params($db_connection, $strQuery, array());
 	$count = pg_num_rows($result);
 	while ($row = pg_fetch_array($result, null, PGSQL_ASSOC)) {
 		$startDate = $row["sd"];
+		$userId = $row["user_id"];
+		$groupName = $row["groupname"];
+		$studyId = $row["study_id"];
+		$fileName = $row["filename"];
 	}
 
 	pg_free_result($result);
