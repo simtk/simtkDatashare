@@ -45,13 +45,28 @@
 }
 
 #cardMetadataCsvFile {
-	background-color: #f0ad4e;
 	padding-left: 20px;
 	padding-top: 5px;
 	padding-bottom: 5px;
 	border-width: thin;
-	border-style: solid;
+	border-left-style: solid;
+	border-right-style: solid;
+	border-top-style: solid;
+	border-bottom-style: transparent;
 	border-color: #337ab7;
+}
+
+.containerMetadataCsvFile {
+	border-width: thin;
+	border-style: solid;
+	border: 1px solid #dcc896;
+	background: rgba(250,240,210,.5);
+	margin: 15px 15px 0px 0px;
+	border-radius: 5px;
+}
+
+.containerMetadataCsvFile>.row {
+	margin: 5px;
 }
 
 .hdrImport {
@@ -72,7 +87,20 @@
 	border-color: #337ab7;
 }
 
+.card-footer>div {
+	text-align: right;
+}
+
 #modalHeaderImportMetadata {
 	background-color: #f0ad4e;
+}
+
+.btn-success {
+	margin-top: 2px;
+	font-size: 18px;
+	line-height: 1.3333333;
+	border-radius: 6px;
+	padding: 10px 16px;
+	margin-right: 15px; 
 }
 

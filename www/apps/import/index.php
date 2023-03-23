@@ -84,14 +84,14 @@ include_once("../../baseIncludes.php");
 		if (files.length == 0) {
 			// File not selected.
 			//console.log("File not selected");
-			$("#msgImportMetadata").html('<div class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Please select a Metadata CSV file to populate from.</b></div>');
+			$("#msgImportMetadata").html('<div class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Please select a Metadata CSV file to process.</b></div>');
 			$("#msgImportMetadata")[0].scrollIntoView(false);
 			return;
 		}
 		if (files.length > 1) {
 			// More than 1 file selected.
 			//console.log("More than 1 file selected");
-			$("#msgImportMetadata").html('<div class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Please select only 1 Metadata CSV file to populate from.</b></div>');
+			$("#msgImportMetadata").html('<div class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Please select only 1 Metadata CSV file to process.</b></div>');
 			$("#msgImportMetadata")[0].scrollIntoView(false);
 			return;
 		}
@@ -111,7 +111,7 @@ include_once("../../baseIncludes.php");
 		if (decodedFilePath.endsWith(fileType) == false) {
 			// Incorrect file type.
 			//console.log("Incorrect file type");
-			$("#msgImportMetadata").html('<div class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Incorrect file type. Please select Metadata CSV file to populate from.</b></div>');
+			$("#msgImportMetadata").html('<div class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Incorrect file type. Please select Metadata CSV file to process.</b></div>');
 			$("#msgImportMetadata")[0].scrollIntoView(false);
 			return;
 		}
@@ -131,7 +131,7 @@ include_once("../../baseIncludes.php");
 		theData.push({name: "subjectColumn", value: theSubjectColumn});
 		theData.push({name: "subjectPrefix", value: theSubjectPrefix});
 
-		if (submit.value == "Populate") {
+		if (submit.value == "Process") {
 			// Import selected metadata CSV file.
 			// Generate metadata.json files for subjects.
 			theData.push({name: "isSave", value: 1});
@@ -167,7 +167,7 @@ include_once("../../baseIncludes.php");
 			if (res.status == "Success") {
 				// Display result in modal dialog.
 				if (res.isSave) {
-					// Populate.
+					// Process.
 					if (res.num_of_subjects_save > 0) {
 						$("#modalTitleImportMetadata").text(
 							res.num_of_subjects_save + 
@@ -278,16 +278,6 @@ include_once("../../baseIncludes.php");
 		$(".myPopOver").mouseleave(function() {
 			$(this).find(".popoverLic").popover("hide");
 		});
-
-		// Adjust container width.
-		// Otherwise, the container size does not match after manual resizing.
-		$(".panel-body").resize(function() {
-			if ($(this).width() > 0) {
-				// Adjust only if width is greater than zero.
-				// During initial loading, this width may be negative. Ignore.
-				$(".panel-primary").width($(this).width() + 2);
-			}
-		});
 	});
 </script>
 
@@ -347,56 +337,58 @@ include_once("../../baseIncludes.php");
 		</div>
 
 		<div class="collapse" id="importMetadataCsvFile">
-		<div class="card-body" id="cardMetadataCsvFile">
-			<div class="row">
-				<span class="hdrImport"><b>Select CSV file from "Import and Edit Data" section</b></span>
-				<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="The metadata CSV file should reside in a folder directly above the subject folders where metadata.json files will be populated.">?</a></span>
+			<div class="card-body" id="cardMetadataCsvFile">
+				<div class="containerMetadataCsvFile">
+					<div class="row">
+						<span class="hdrImport"><b>Select CSV file from "Import and Edit Data" section</b></span>
+						<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="The metadata CSV file should reside in a folder directly above the subject folders where metadata.json files will be populated.">?</a></span>
+					</div>
+					<div class="row">
+						<span class="hdrImport""><b>Specify the following parameters</b></span>
+					</div>
+					<div class="row">
+						<span class="msgImport"">Row number of header </span>
+						<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Row where header information is located.">?</a></span>
+						<input type="number" id="headerRow" name="headerRow" min="1" max="999" value="1">
+					</div>
+					<div class="row">
+						<span class="msgImport">Column number of column with subject ID </span>
+						<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Column mapping: 1=A, 2=B, 3=C, etc.">?</a></span>
+						<input type="number" id="subjectColumn" name="subjectColumn" min="1" max="999" value="1">
+					</div>
+				</div>
 			</div>
-			<div class="row">
-				<span class="hdrImport""><b>Specify the following parameters</b></span>
-			</div>
-			<div class="row">
-				<span class="msgImport"">Row number of header </span>
-				<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Row where header information is located.">?</a></span>
-				<input type="number" id="headerRow" name="headerRow" min="1" max="999" value="1">
-			</div>
-			<div class="row">
-				<span class="msgImport">Column number of column with subject ID </span>
-				<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Column mapping: 1=A, 2=B, 3=C, etc.">?</a></span>
-				<input type="number" id="subjectColumn" name="subjectColumn" min="1" max="999" value="1">
+
+			<div class="card-footer">
+				<div>
+					<button id="btnVerify" class="btn btn-success"
+						name="verify_meta" 
+						value="Verify"
+						onclick="event.preventDefault(); handleSubmit(this)">
+						<span class="glyphicon glyphicon-check"></span>
+						Verify
+					</button>
+					<button id="btnProcess" class="btn btn-success"
+						name="import_meta" 
+						value="Process"
+						onclick="event.preventDefault(); handleSubmit(this)">
+						<span class="glyphicon glyphicon-cog"></span>
+						Process
+					</button>
+				</div>
 			</div>
 		</div>
 
-		<div class="card-footer">
-			<div class="row">
-				<div class="col-sm-9"></div>
-				<div class="col-sm-1">
-					<input class="btn btn-success"
-						type="submit" 
-						name="verify_meta" 
-						value="Verify"
-						onclick="event.preventDefault(); handleSubmit(this)" />
-				</div>
-				<div class="col-sm-1">
-					<input class="btn btn-success"
-						type="submit" 
-						name="import_meta" 
-						value="Populate"
-						onclick="event.preventDefault(); handleSubmit(this)" />
-				</div>
-			</div>
-			<input type="hidden" 
-				id="studyId" 
-				name="studyId" 
-				value="<?php echo $studyid; ?>"
-			/>
-			<input type="hidden" 
-				id="subjectPrefix" 
-				name="subjectPrefix" 
-				value="<?php echo $subjectPrefix; ?>"
-			/>
-		</div>
-		</div>
+		<input type="hidden" 
+			id="studyId" 
+			name="studyId" 
+			value="<?php echo $studyid; ?>"
+		/>
+		<input type="hidden" 
+			id="subjectPrefix" 
+			name="subjectPrefix" 
+			value="<?php echo $subjectPrefix; ?>"
+		/>
 	</form>
 
 	<br/>
