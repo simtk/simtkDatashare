@@ -171,7 +171,7 @@ include_once("../../baseIncludes.php");
 					if (res.num_of_subjects_save > 0) {
 						$("#modalTitleImportMetadata").text(
 							res.num_of_subjects_save + 
-							" subjects populated.");
+							" subjects processed.");
 						$("#modalMsgImportMetadata").html(
 							"<PRE>" +
 							res.num_of_subjects_avail + 
@@ -184,7 +184,7 @@ include_once("../../baseIncludes.php");
 						// Subjects not found to populate with metadata.
 						$("#modalTitleImportMetadata").text(
 							res.num_of_subjects_save + 
-							" subjects populated.");
+							" subjects processed.");
 						$("#modalMsgImportMetadata").html(
 							"<PRE>" +
 							res.num_of_subjects_avail + 
@@ -215,7 +215,7 @@ include_once("../../baseIncludes.php");
 					// Verify.
 					$("#modalTitleImportMetadata").text(
 						res.num_of_subjects_save + 
-						" subjects will be populated.");
+						" subjects will be processed.");
 					$("#modalMsgImportMetadata").html(
 						"<PRE>" +
 						res.num_of_subjects_avail + 
@@ -234,7 +234,7 @@ include_once("../../baseIncludes.php");
 				if (res.isSave) {
 					$("#modalTitleImportMetadata").text(
 						res.num_of_subjects_save + 
-						" subjects populated. " +
+						" subjects processed. " +
 						"Please update parameters and retry.");
 					$("#modalMsgImportMetadata").html(
 						"<PRE>" +
@@ -247,7 +247,7 @@ include_once("../../baseIncludes.php");
 				else {
 					$("#modalTitleImportMetadata").text(
 						res.num_of_subjects_save + 
-						" subjects will be populated. " +
+						" subjects will be processed. " +
 						"Please update parameters and retry.");
 					$("#modalMsgImportMetadata").html(
 						"<PRE>" +
@@ -341,7 +341,7 @@ include_once("../../baseIncludes.php");
 				<div class="containerMetadataCsvFile">
 					<div class="row">
 						<span class="hdrImport"><b>Select CSV file from "Import and Edit Data" section</b></span>
-						<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="The metadata CSV file should reside in a folder directly above the subject folders where metadata.json files will be populated.">?</a></span>
+						<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="The metadata CSV file should reside in a folder directly above the subject folders where metadata.json files will be processed.">?</a></span>
 					</div>
 					<div class="row">
 						<span class="hdrImport""><b>Specify the following parameters</b></span>
