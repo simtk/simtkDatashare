@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2020-2022, SimTK DataShare Team
+ * Copyright 2020-2023, SimTK DataShare Team
  *
  * This file is part of SimTK DataShare. Initial development
  * was funded under NIH grants R01GM107340 and U54EB020405
@@ -42,6 +42,9 @@
 	if (isset($_SESSION['email'])) {
 		$email = $_SESSION['email'];
 	}
+	if (isset($_SESSION['subject_prefix'])) {
+		$subjectPrefix = $_SESSION['subject_prefix'];
+	}
 	// ===== REDIRECT USER TO LOGIN IF NOT CURRENTLY LOGGED IN OR INSUFFICIENT PERMISSIONS
 	/*
 	if( ! isset($_SESSION[ "is_auth" ])) { header( "location: /mobilizeds/index.php" ); exit; }
@@ -70,7 +73,212 @@ include_once("../../baseIncludes.php");
 		alert("The Import/Edit Data functionality is not supported on IE.  We recommend using Chrome, Firefox, or Edge instead.");
 	}
 
+	function handleSubmit(submit) {
+		// Clear message area.
+		$("#msgImportMetadata").html('');
+
+		// Get selected file.
+		var volumeId = "l1_";
+		var fileType = ".csv";
+		var files = fm.selectedFiles();
+		if (files.length == 0) {
+			// File not selected.
+			//console.log("File not selected");
+			$("#msgImportMetadata").html('<div class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Please select a Metadata CSV file to populate from.</b></div>');
+			$("#msgImportMetadata")[0].scrollIntoView(false);
+			return;
+		}
+		if (files.length > 1) {
+			// More than 1 file selected.
+			//console.log("More than 1 file selected");
+			$("#msgImportMetadata").html('<div class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Please select only 1 Metadata CSV file to populate from.</b></div>');
+			$("#msgImportMetadata")[0].scrollIntoView(false);
+			return;
+		}
+		if (files[0].hash.indexOf(volumeId) == -1) {
+			// Incorrect hash.
+			//console.log("Incorrect file hash");
+			$("#msgImportMetadata").html('<div class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Incorrect Metadata CSV file hash.</b></div>');
+			$("#msgImportMetadata")[0].scrollIntoView(false);
+			return;
+		}
+		var theHash = files[0].hash.substr(volumeId.length);
+		theHash = theHash.replace(/-/g, "+");
+		theHash = theHash.replace(/_/g, "/");
+		theHash = theHash.replace(/\./g, "=");
+		// Decode file path from file hash.
+		var decodedFilePath = atob(theHash);
+		if (decodedFilePath.endsWith(fileType) == false) {
+			// Incorrect file type.
+			//console.log("Incorrect file type");
+			$("#msgImportMetadata").html('<div class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Incorrect file type. Please select Metadata CSV file to populate from.</b></div>');
+			$("#msgImportMetadata")[0].scrollIntoView(false);
+			return;
+		}
+		// Get metadata CSV file path and name, excluding extension.
+		var theCSVFile = decodedFilePath.substr(0, decodedFilePath.length - 4);
+
+		// Get values from form.
+		var theData = new Array();
+		var theStudyId = $("#studyId").val();
+		var theHeaderRow = $("#headerRow").val();
+		var theSubjectColumn = $("#subjectColumn").val();
+		var theSubjectPrefix = $("#subjectPrefix").val();
+
+		var theData = new Array();
+		theData.push({name: "nameMetadataCSVFile", value: theCSVFile});
+		theData.push({name: "headerRow", value: theHeaderRow});
+		theData.push({name: "subjectColumn", value: theSubjectColumn});
+		theData.push({name: "subjectPrefix", value: theSubjectPrefix});
+
+		if (submit.value == "Populate") {
+			// Import selected metadata CSV file.
+			// Generate metadata.json files for subjects.
+			theData.push({name: "isSave", value: 1});
+		}
+		else {
+			// Verify selected metadata CSV file.
+			// Do not generate metadata.json files for subjects.
+			theData.push({name: "isSave", value: 0});
+		}
+
+		var theURL = 'parseMetadataCSV.php?' + 
+			'templateid=<?php echo $templateid; ?>&' +
+			'section=<?php echo $_SESSION["section"]; ?>&' +
+			'groupid=<?php echo $_SESSION["group_id"]; ?>&' +
+			'userid=<?php echo $_SESSION["userid"]; ?>&' +
+			'studyid=<?php echo $_SESSION["study_id"]; ?>&' +
+			'isDOI=<?php echo $_SESSION["isDOI"]; ?>&' +
+			'doi_identifier=<?php echo $_SESSION["doi_identifier"]; ?>&' +
+			'token=<?php echo $_SESSION["token"]; ?>&' +
+			'private=<?php echo $_SESSION["private"]; ?>&' +
+			'member=<?php echo $_SESSION["member"]; ?>&' +
+			'firstname=<?php echo urlencode($_SESSION["firstname"]); ?>&' +
+			'lastname=<?php echo urlencode($_SESSION["lastname"]); ?>';
+		$.ajax({
+			type: "POST",
+			data: theData,
+			dataType: "json",
+			url: theURL,
+			async: false,
+		}).done(function(res) {
+			// Success in parse and import CSV file.
+
+			if (res.status == "Success") {
+				// Display result in modal dialog.
+				if (res.isSave) {
+					// Populate.
+					if (res.num_of_subjects_save > 0) {
+						$("#modalTitleImportMetadata").text(
+							res.num_of_subjects_save + 
+							" subjects populated.");
+						$("#modalMsgImportMetadata").html(
+							"<PRE>" +
+							res.num_of_subjects_avail + 
+							" subjects available from metadata CSV file.\n\n" +
+							res.err_log +
+							"</PRE>"
+						);
+					}
+					else {
+						// Subjects not found to populate with metadata.
+						$("#modalTitleImportMetadata").text(
+							res.num_of_subjects_save + 
+							" subjects populated.");
+						$("#modalMsgImportMetadata").html(
+							"<PRE>" +
+							res.num_of_subjects_avail + 
+							" subjects available from metadata CSV file.\n\n" +
+							res.err_log +
+							"</PRE>"
+						);
+					}
+
+					// Display modal message dialog.
+					$("#modalImportMetadata").modal("show");
+					$("#modalImportMetadata")[0].scrollIntoView(false);
+
+					// Check if metadata are present after metadata import.
+					if (res.total_metadata > 0) {
+						// Show query and config DIVs.
+						$("#queryDiv").show();
+						$("#configDiv").show();
+					}
+					else {
+						// Hide query and config DIVs.
+						$("#queryDiv").hide();
+						$("#configDiv").hide();
+					}
+					$("#browseDiv")[0].scrollIntoView(false);
+				}
+				else {
+					// Verify.
+					$("#modalTitleImportMetadata").text(
+						res.num_of_subjects_save + 
+						" subjects will be populated.");
+					$("#modalMsgImportMetadata").html(
+						"<PRE>" +
+						res.num_of_subjects_avail + 
+						" subjects available from metadata CSV file.\n\n" +
+						res.err_log +
+						"</PRE>"
+					);
+
+					// Display modal message dialog.
+					$("#modalImportMetadata").modal("show");
+					$("#modalImportMetadata")[0].scrollIntoView(false);
+				}
+			}
+			else {
+				// Display result in modal dialog.
+				if (res.isSave) {
+					$("#modalTitleImportMetadata").text(
+						res.num_of_subjects_save + 
+						" subjects populated. " +
+						"Please update parameters and retry.");
+					$("#modalMsgImportMetadata").html(
+						"<PRE>" +
+						res.num_of_subjects_avail + 
+						" subjects available from metadata CSV file.\n\n" +
+						res.err_log +
+						"</PRE>"
+					);
+				}
+				else {
+					$("#modalTitleImportMetadata").text(
+						res.num_of_subjects_save + 
+						" subjects will be populated. " +
+						"Please update parameters and retry.");
+					$("#modalMsgImportMetadata").html(
+						"<PRE>" +
+						res.num_of_subjects_avail + 
+						" subjects available from metadata CSV file.\n\n" +
+						res.err_log +
+						"</PRE>"
+					);
+				}
+
+				// Display modal message dialog.
+				$("#modalImportMetadata").modal("show");
+				$("#modalImportMetadata")[0].scrollIntoView(false);
+			}
+		}).fail(function(res) {
+			console.log("Error: " + JSON.stringify(res));
+		});
+	}
+
 	$(document).ready(function() {
+		// Clear message.
+		$("#msgImportMetadata").html('');
+
+		// Handle popover show and hide.
+		$(".myPopOver").hover(function() {
+			$(this).find(".popoverLic").popover("show");
+		});
+		$(".myPopOver").mouseleave(function() {
+			$(this).find(".popoverLic").popover("hide");
+		});
+
 		// Adjust container width.
 		// Otherwise, the container size does not match after manual resizing.
 		$(".panel-body").resize(function() {
@@ -82,22 +290,14 @@ include_once("../../baseIncludes.php");
 		});
 	});
 </script>
-<style>
-.panel-body {
-	min-height: 440px;
-}
-.panel-primary {
-	min-height: 481px;
-}
-.ui-resizable-handle {
-	display:none !important;
-}
-</style>
 
+<link href="import.css" rel="stylesheet" />
 </head>
 
 <body>
 <div class="container">
+
+	<div id="msgImportMetadata"></div>
 
 	<?php $relative_url = "../../"; include( $relative_url . "banner.php" ); ?>
 
@@ -108,8 +308,97 @@ include_once("../../baseIncludes.php");
 <li><b>Compressed files (.zip, .tar.gz, .tar):</b> SimTK will automatically expand compressed files. <b>For the automatic expansion to work propoerly, none of the file and directory names can start with a "."</b></li>
 </ul>
 	<b>Enabling Query</b><br/>
-	<p>To enable querying of your dataset, you need to <a style="color:#f75236;" href="metadata.php" target="_blank">provide metadata</a>. Metadata can be provided explicitly via a file or implicitly via your directory structure.</p><br/>
+	<p>To enable querying of your dataset, you need to <a style="color:#f75236;" href="metadata.php" target="_blank">provide metadata</a>. Metadata can be provided explicitly via a file or implicitly via your directory structure.</p>
 	<div id="importStatus"></div>
+
+	<div id="modalImportMetadata" 
+		class="modal fade" 
+		data-keyboard="false" 
+		data-backdrop="static" 
+		role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div id="modalHeaderImportMetadata" class="modal-header"><b><span id="modalTitleImportMetadata"></span></b><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div id="modalMsgImportMetadata" class="modal-body">
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-success" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<form id="parseMetadataCSV" 
+		method="post" 
+		enctype="multipart/form-data">
+
+		<div id="handleMetadataCsvFile"
+			class="panel-heading"
+			data-toggle="collapse"
+			data-target="#importMetadataCsvFile"
+			aria-expanded="false"
+			aria-controls="importMetadataCsvFile">
+			<span>
+				<b>Populate from Metadata CSV File</b>
+				<span class="arrow-down"></span>
+			</span>
+		</div>
+
+		<div class="collapse" id="importMetadataCsvFile">
+		<div class="card-body" id="cardMetadataCsvFile">
+			<div class="row">
+				<span class="hdrImport"><b>Select CSV file from "Import and Edit Data" section</b></span>
+				<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="The metadata CSV file should reside in a folder directly above the subject folders where metadata.json files will be populated.">?</a></span>
+			</div>
+			<div class="row">
+				<span class="hdrImport""><b>Specify the following parameters</b></span>
+			</div>
+			<div class="row">
+				<span class="msgImport"">Row number of header </span>
+				<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Row where header information is located.">?</a></span>
+				<input type="number" id="headerRow" name="headerRow" min="1" max="999" value="1">
+			</div>
+			<div class="row">
+				<span class="msgImport">Column number of column with subject ID </span>
+				<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Column mapping: 1=A, 2=B, 3=C, etc.">?</a></span>
+				<input type="number" id="subjectColumn" name="subjectColumn" min="1" max="999" value="1">
+			</div>
+		</div>
+
+		<div class="card-footer">
+			<div class="row">
+				<div class="col-sm-9"></div>
+				<div class="col-sm-1">
+					<input class="btn btn-success"
+						type="submit" 
+						name="verify_meta" 
+						value="Verify"
+						onclick="event.preventDefault(); handleSubmit(this)" />
+				</div>
+				<div class="col-sm-1">
+					<input class="btn btn-success"
+						type="submit" 
+						name="import_meta" 
+						value="Populate"
+						onclick="event.preventDefault(); handleSubmit(this)" />
+				</div>
+			</div>
+			<input type="hidden" 
+				id="studyId" 
+				name="studyId" 
+				value="<?php echo $studyid; ?>"
+			/>
+			<input type="hidden" 
+				id="subjectPrefix" 
+				name="subjectPrefix" 
+				value="<?php echo $subjectPrefix; ?>"
+			/>
+		</div>
+		</div>
+	</form>
+
 	<br/>
 
 	<div class="panel panel-primary">
@@ -171,7 +460,8 @@ include_once("../../baseIncludes.php");
 	};
 
 	$(function() {
-		$('#elfinder').elfinder( elfinder_options );
+		// Generate instance of elfinder and keep handle to the instance.
+		fm = $('#elfinder').elfinder( elfinder_options ).elfinder('instance');
 
 		// Update Import Status.
 		var theData = new Array();

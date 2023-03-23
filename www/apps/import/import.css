@@ -1,0 +1,78 @@
+.panel-body {
+	min-height: 440px;
+}
+
+.panel-primary {
+	min-height: 481px;
+}
+
+.ui-resizable-handle {
+	display:none !important;
+}
+
+.container>p>a {
+	color: #f75236;
+}
+
+#handleMetadataCsvFile>span>.arrow-down {
+	float: right;
+	margin-top: 6px;
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
+	border-top: 10px solid white;
+	border-bottom: 10px solid transparent;
+}
+
+#msgImportMetadata {
+	background-color: #ffd297;
+	margin-top: 5px;
+	max-width: 954px;
+}
+
+#handleMetadataCsvFile {
+	margin-top: 15px;
+	background-color: #337ab7;
+	color: #fff;
+	padding: 4px;
+}
+
+#handleMetadataCsvFile>span {
+	padding-left: 12px;
+}
+
+#handleMetadataCsvFile>span>b {
+	font-size: 16px;
+}
+
+#cardMetadataCsvFile {
+	background-color: #f0ad4e;
+	padding-left: 20px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	border-width: thin;
+	border-style: solid;
+	border-color: #337ab7;
+}
+
+.hdrImport {
+	padding-left: 12px;
+}
+
+.msgImport {
+	padding-left: 20px;
+}
+
+.card-footer {
+	padding-top: 5px;
+	padding-bottom: 5px;
+	border-width: thin;
+	border-left-style: solid;
+	border-right-style: solid;
+	border-bottom-style: solid;
+	border-color: #337ab7;
+}
+
+#modalHeaderImportMetadata {
+	background-color: #f0ad4e;
+}
+
