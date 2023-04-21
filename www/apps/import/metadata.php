@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2020-2021, SimTK DataShare Team
+ * Copyright 2020-2023, SimTK DataShare Team
  *
  * This file is part of SimTK DataShare. Initial development
  * was funded under NIH grants R01GM107340 and U54EB020405
@@ -303,6 +303,8 @@ Test02
 </li>
 <br/>
 </ol>
+<br/>
+<h3 id="populate">Populate from Metadata CSV File</h3>
 </div>
 </body>
 </html>

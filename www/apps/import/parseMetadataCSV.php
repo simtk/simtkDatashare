@@ -47,7 +47,7 @@ if ($perm <= 2) {
 	return false;
 }
 
-if (!is_numeric($studyid)) {
+if (!is_numeric($studyid) || intval($studyid) < 1) {
 	// Invalid study id.
 	$arrRes['err_log'] = "Invalid study.";
 	echo json_encode($arrRes);
@@ -107,7 +107,7 @@ $fullPathCsvFileName = $dirStudy . "study" . $studyid .
 	"/files/" . $nameMetadataCSVFile . ".csv";
 if (!is_file($fullPathCsvFileName)) {
 	// Cannot open CSV file.
-	$arrRes['err_log'] = "Invalid file.";
+	$arrRes['err_log'] = "Invalid file: " . $fullPathCsvFileName;
 	echo json_encode($arrRes);
 	return false;
 }
@@ -130,7 +130,7 @@ if ($arrSubjInfo == null) {
 $idxEnd = strrpos($fullPathCsvFileName, "/");
 if ($idxEnd === false) {
 	// Cannot get path to directory of metadata CSV File.
-	$arrRes['err_log'] = $strErrLog;
+	$arrRes['err_log'] = "Cannot get path to Metadata CSV File.\n\n" . $strErrLog;
 	$arrRes['num_of_subjects_avail'] = count($arrSubjInfo);
 	echo json_encode($arrRes);
 	return false;
@@ -157,7 +157,7 @@ $fullPathStudy = $dirStudy . "study" . $studyid . "/files";
 $status = exec("/usr/local/mobilizeds/bin/index/study $fullPathStudy", $arrImport);
 if ($status === false) {
 	// Cannot import study.
-	$arrRes['err_log'] = $strErrLog;
+	$arrRes['err_log'] = "Cannot import metadata.\n\n" . $strErrLog;
 	$arrRes['num_of_subjects_avail'] = count($arrSubjInfo);
 	$arrRes['num_of_subjects_save'] = $cntJsonFiles;
 	echo json_encode($arrRes);

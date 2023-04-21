@@ -169,29 +169,31 @@ include_once("../../baseIncludes.php");
 				if (res.isSave) {
 					// Process.
 					if (res.num_of_subjects_save > 0) {
-						$("#modalTitleImportMetadata").text(
+						var strMsg = res.num_of_subjects_avail + 
+							" subjects available from metadata CSV file. " +
 							res.num_of_subjects_save + 
-							" subjects processed.");
-						$("#modalMsgImportMetadata").html(
-							"<PRE>" +
-							res.num_of_subjects_avail + 
-							" subjects available from metadata CSV file.\n\n" +
-							res.err_log +
-							"</PRE>"
-						);
+							" subjects processed.";
+						if (res.err_log.trim() != "") {
+							$("#modalMsgImportMetadata").html(
+								"<PRE>" + res.err_log + "</PRE>"
+							);
+							strMsg += "<br/><a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+						}
+						$("#modalTitleImportMetadata").html(strMsg);
 					}
 					else {
 						// Subjects not found to populate with metadata.
-						$("#modalTitleImportMetadata").text(
+						var strMsg = res.num_of_subjects_avail + 
+							" subjects available from metadata CSV file. " +
 							res.num_of_subjects_save + 
-							" subjects processed.");
-						$("#modalMsgImportMetadata").html(
-							"<PRE>" +
-							res.num_of_subjects_avail + 
-							" subjects available from metadata CSV file.\n\n" +
-							res.err_log +
-							"</PRE>"
-						);
+							" subjects processed.";
+						if (res.err_log.trim() != "") {
+							$("#modalMsgImportMetadata").html(
+								"<PRE>" + res.err_log + "</PRE>"
+							);
+							strMsg += "<br/><a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+						}
+						$("#modalTitleImportMetadata").html(strMsg);
 					}
 
 					// Display modal message dialog.
@@ -213,16 +215,17 @@ include_once("../../baseIncludes.php");
 				}
 				else {
 					// Verify.
-					$("#modalTitleImportMetadata").text(
+					var strMsg = res.num_of_subjects_avail + 
+						" subjects available from metadata CSV file. " +
 						res.num_of_subjects_save + 
-						" subjects will be processed.");
-					$("#modalMsgImportMetadata").html(
-						"<PRE>" +
-						res.num_of_subjects_avail + 
-						" subjects available from metadata CSV file.\n\n" +
-						res.err_log +
-						"</PRE>"
-					);
+						" subjects will be processed.";
+					if (res.err_log.trim() != "") {
+						$("#modalMsgImportMetadata").html(
+							"<PRE>" + res.err_log + "</PRE>"
+						);
+						strMsg += "<br/><a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+					}
+					$("#modalTitleImportMetadata").html(strMsg);
 
 					// Display modal message dialog.
 					$("#modalImportMetadata").modal("show");
@@ -232,30 +235,30 @@ include_once("../../baseIncludes.php");
 			else {
 				// Display result in modal dialog.
 				if (res.isSave) {
-					$("#modalTitleImportMetadata").text(
+					var strMsg = res.num_of_subjects_avail + 
+						" subjects available from metadata CSV file. " +
 						res.num_of_subjects_save + 
-						" subjects processed. " +
-						"Please update parameters and retry.");
-					$("#modalMsgImportMetadata").html(
-						"<PRE>" +
-						res.num_of_subjects_avail + 
-						" subjects available from metadata CSV file.\n\n" +
-						res.err_log +
-						"</PRE>"
-					);
+						" subjects processed.";
+					if (res.err_log.trim() != "") {
+						$("#modalMsgImportMetadata").html(
+							"<PRE>" + res.err_log + "</PRE>"
+						);
+						strMsg += "<br/><a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+					}
+					$("#modalTitleImportMetadata").html(strMsg);
 				}
 				else {
-					$("#modalTitleImportMetadata").text(
+					var strMsg = res.num_of_subjects_avail + 
+						" subjects available from metadata CSV file. " +
 						res.num_of_subjects_save + 
-						" subjects will be processed. " +
-						"Please update parameters and retry.");
-					$("#modalMsgImportMetadata").html(
-						"<PRE>" +
-						res.num_of_subjects_avail + 
-						" subjects available from metadata CSV file.\n\n" +
-						res.err_log +
-						"</PRE>"
-					);
+						" subjects will be processed.";
+					if (res.err_log.trim() != "") {
+						$("#modalMsgImportMetadata").html(
+							"<PRE>" + res.err_log + "</PRE>"
+						);
+						strMsg += "<br/><a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+					}
+					$("#modalTitleImportMetadata").html(strMsg);
 				}
 
 				// Display modal message dialog.
@@ -348,7 +351,7 @@ include_once("../../baseIncludes.php");
 					</div>
 					<div class="row">
 						<span class="msgImport"">Row number of header </span>
-						<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Row where header information is located.">?</a></span>
+						<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Row where header information is located. Columns in the row header should only contain alphanumeric characters in addition to the following characters: ( ) [ ] / ^ _ space">?</a></span>
 						<input type="number" id="headerRow" name="headerRow" min="1" max="999" value="1">
 					</div>
 					<div class="row">
