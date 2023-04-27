@@ -177,7 +177,7 @@ include_once("../../baseIncludes.php");
 							$("#modalMsgImportMetadata").html(
 								"<PRE>" + res.err_log + "</PRE>"
 							);
-							strMsg += "<br/><a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+							strMsg += "<br/>ERROR - <a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
 						}
 						$("#modalTitleImportMetadata").html(strMsg);
 					}
@@ -191,7 +191,7 @@ include_once("../../baseIncludes.php");
 							$("#modalMsgImportMetadata").html(
 								"<PRE>" + res.err_log + "</PRE>"
 							);
-							strMsg += "<br/><a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+							strMsg += "<br/>ERROR - <a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
 						}
 						$("#modalTitleImportMetadata").html(strMsg);
 					}
@@ -223,7 +223,7 @@ include_once("../../baseIncludes.php");
 						$("#modalMsgImportMetadata").html(
 							"<PRE>" + res.err_log + "</PRE>"
 						);
-						strMsg += "<br/><a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+						strMsg += "<br/>ERROR - <a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
 					}
 					$("#modalTitleImportMetadata").html(strMsg);
 
@@ -243,7 +243,7 @@ include_once("../../baseIncludes.php");
 						$("#modalMsgImportMetadata").html(
 							"<PRE>" + res.err_log + "</PRE>"
 						);
-						strMsg += "<br/><a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+						strMsg += "<br/>ERROR - <a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
 					}
 					$("#modalTitleImportMetadata").html(strMsg);
 				}
@@ -256,7 +256,7 @@ include_once("../../baseIncludes.php");
 						$("#modalMsgImportMetadata").html(
 							"<PRE>" + res.err_log + "</PRE>"
 						);
-						strMsg += "<br/><a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+						strMsg += "<br/>ERROR - <a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
 					}
 					$("#modalTitleImportMetadata").html(strMsg);
 				}
