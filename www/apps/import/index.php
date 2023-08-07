@@ -177,7 +177,12 @@ include_once("../../baseIncludes.php");
 							$("#modalMsgImportMetadata").html(
 								"<PRE>" + res.err_log + "</PRE>"
 							);
-							strMsg += "<br/>ERROR - <a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+							strMsg += "<br/>ERROR - " +
+								"<a href='metadata.php" +
+								"#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+						}
+						else {
+							$("#modalMsgImportMetadata").html("");
 						}
 						$("#modalTitleImportMetadata").html(strMsg);
 					}
@@ -191,10 +196,34 @@ include_once("../../baseIncludes.php");
 							$("#modalMsgImportMetadata").html(
 								"<PRE>" + res.err_log + "</PRE>"
 							);
-							strMsg += "<br/>ERROR - <a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+							strMsg += "<br/>ERROR - " +
+								"<a href='metadata.php" +
+								"#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+						}
+						else {
+							$("#modalMsgImportMetadata").html("");
 						}
 						$("#modalTitleImportMetadata").html(strMsg);
 					}
+
+					// Update Import Status.
+					var theData = new Array();
+					theData.push({name: "StudyId", value: <?php echo $studyid; ?>});
+					$.ajax({
+						type: "POST",
+						data: theData,
+						dataType: "json",
+						url: "getstatus.php",
+						async: false,
+					}).done(function(res) {
+						if (res.indexOf("***DELETION***") != -1) {
+							$("div.container").find("#importStatus").html("");
+						}
+						else {
+							$("div.container").find("#importStatus").html("<span><b>Import Status</b><br/>" + res + "</span>");
+						}
+					}).fail(function() {
+					});
 
 					// Display modal message dialog.
 					$("#modalImportMetadata").modal("show");
@@ -223,7 +252,12 @@ include_once("../../baseIncludes.php");
 						$("#modalMsgImportMetadata").html(
 							"<PRE>" + res.err_log + "</PRE>"
 						);
-						strMsg += "<br/>ERROR - <a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+						strMsg += "<br/>ERROR - " +
+							"<a href='metadata.php" +
+							"#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+					}
+					else {
+						$("#modalMsgImportMetadata").html("");
 					}
 					$("#modalTitleImportMetadata").html(strMsg);
 
@@ -243,7 +277,12 @@ include_once("../../baseIncludes.php");
 						$("#modalMsgImportMetadata").html(
 							"<PRE>" + res.err_log + "</PRE>"
 						);
-						strMsg += "<br/>ERROR - <a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+						strMsg += "<br/>ERROR - " +
+							"<a href='metadata.php" +
+							"#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+					}
+					else {
+						$("#modalMsgImportMetadata").html("");
 					}
 					$("#modalTitleImportMetadata").html(strMsg);
 				}
@@ -256,10 +295,34 @@ include_once("../../baseIncludes.php");
 						$("#modalMsgImportMetadata").html(
 							"<PRE>" + res.err_log + "</PRE>"
 						);
-						strMsg += "<br/>ERROR - <a href='metadata.php#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+						strMsg += "<br/>ERROR - " +
+							"<a href='metadata.php" +
+							"#populate' target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
+					}
+					else {
+						$("#modalMsgImportMetadata").html("");
 					}
 					$("#modalTitleImportMetadata").html(strMsg);
 				}
+
+				// Update Import Status.
+				var theData = new Array();
+				theData.push({name: "StudyId", value: <?php echo $studyid; ?>});
+				$.ajax({
+					type: "POST",
+					data: theData,
+					dataType: "json",
+					url: "getstatus.php",
+					async: false,
+				}).done(function(res) {
+					if (res.indexOf("***DELETION***") != -1) {
+						$("div.container").find("#importStatus").html("");
+					}
+					else {
+						$("div.container").find("#importStatus").html("<span><b>Import Status</b><br/>" + res + "</span>");
+					}
+				}).fail(function() {
+				});
 
 				// Display modal message dialog.
 				$("#modalImportMetadata").modal("show");
@@ -300,9 +363,14 @@ include_once("../../baseIncludes.php");
 <li>Upload files by dragging and dropping them in the "Import and Edit Data" window below.  <b>Note: Filenames that start with a "." cannot be uploaded.</b></li>
 <li><b>Compressed files (.zip, .tar.gz, .tar):</b> SimTK will automatically expand compressed files. <b>For the automatic expansion to work propoerly, none of the file and directory names can start with a "."</b></li>
 </ul>
-	<b>Enabling Query</b><br/>
-	<p>To enable querying of your dataset, you need to <a style="color:#f75236;" href="metadata.php" target="_blank">provide metadata</a>. Metadata can be provided explicitly via a file or implicitly via your directory structure.</p>
+	<b>Provide Metadata & Enable Query Feature</b><br/>
+	To enable querying of your dataset, you need to <a style="color:#f75236;" href="metadata.php" target="_blank">provide metadata</a>. Options to add metadata:
+	<ul>
+	<li>SimTK can semi-automatically generate metadata files from a CSV file (See "Populate from Metatadata CSV File" section below).</li>
+	<li>You can also explicitly provide metadata via files in each data folder or implicitly via your directory structure. <a style="color:#f75236;" href="metadata.php#provide" target="_blank">More details</a></li>
+	</ul>
 	<div id="importStatus"></div>
+	<br/>
 
 	<div id="modalImportMetadata" 
 		class="modal fade" 
@@ -334,7 +402,7 @@ include_once("../../baseIncludes.php");
 			aria-expanded="false"
 			aria-controls="importMetadataCsvFile">
 			<span>
-				<b>Populate from Metadata CSV File</b>
+				<span class="panel-title">Populate from Metadata CSV File</span>
 				<span class="arrow-down"></span>
 			</span>
 		</div>
@@ -343,20 +411,23 @@ include_once("../../baseIncludes.php");
 			<div class="card-body" id="cardMetadataCsvFile">
 				<div class="containerMetadataCsvFile">
 					<div class="row">
-						<span class="hdrImport"><b>Select CSV file from "Import and Edit Data" section</b></span>
-						<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="The metadata CSV file should reside in a folder directly above the subject folders where metadata.json files will be processed.">?</a></span>
+						<span class="hdrImport"><b>1. Import CSV file</b></span>
+						<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="File must contain a header row. Import file to the same directory level as folders to which metadata files will be added.">?</a></span>
 					</div>
 					<div class="row">
-						<span class="hdrImport""><b>Specify the following parameters</b></span>
+						<span class="hdrImport"><b>2. Select CSV file from "Import and Edit Data" section</b></span>
+					</div>
+					<div class="row">
+						<span class="hdrImport""><b>3. Specify the following parameters</b></span>
 					</div>
 					<div class="row">
 						<span class="msgImport"">Row number of header </span>
-						<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Row where header information is located. Columns in the row header should only contain alphanumeric characters in addition to the following characters: ( ) [ ] / ^ _ space">?</a></span>
+						<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Row where header information is located. Content in the row header should only contain alphanumeric characters in addition to the following characters: ( ) [ ] / ^ _ space">?</a></span>
 						<input type="number" id="headerRow" name="headerRow" min="1" max="999" value="1">
 					</div>
 					<div class="row">
 						<span class="msgImport">Column number of column with subject ID </span>
-						<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Column mapping: 1=A, 2=B, 3=C, etc.">?</a></span>
+						<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Column mapping: 1 = Column A (e.g., in Excel, Google Spreadsheet), 2 = Column B, 3 = Column C, etc.">?</a></span>
 						<input type="number" id="subjectColumn" name="subjectColumn" min="1" max="999" value="1">
 					</div>
 				</div>
