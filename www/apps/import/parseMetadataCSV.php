@@ -47,7 +47,7 @@ if ($perm <= 2) {
 	return false;
 }
 
-if (!is_numeric($studyid)) {
+if (!is_numeric($studyid) || intval($studyid) < 1) {
 	// Invalid study id.
 	$arrRes['err_log'] = "Invalid study.";
 	echo json_encode($arrRes);
@@ -107,7 +107,7 @@ $fullPathCsvFileName = $dirStudy . "study" . $studyid .
 	"/files/" . $nameMetadataCSVFile . ".csv";
 if (!is_file($fullPathCsvFileName)) {
 	// Cannot open CSV file.
-	$arrRes['err_log'] = "Invalid file.";
+	$arrRes['err_log'] = "Invalid file: " . $fullPathCsvFileName;
 	echo json_encode($arrRes);
 	return false;
 }
@@ -130,7 +130,7 @@ if ($arrSubjInfo == null) {
 $idxEnd = strrpos($fullPathCsvFileName, "/");
 if ($idxEnd === false) {
 	// Cannot get path to directory of metadata CSV File.
-	$arrRes['err_log'] = $strErrLog;
+	$arrRes['err_log'] = "Cannot get path to Metadata CSV File.\n\n" . $strErrLog;
 	$arrRes['num_of_subjects_avail'] = count($arrSubjInfo);
 	echo json_encode($arrRes);
 	return false;
@@ -155,9 +155,27 @@ $fullPathStudy = $dirStudy . "study" . $studyid . "/files";
 // Old metadata is cleaned up.
 // If metadata is not found for import, study is updated to not contain any metadata.
 $status = exec("/usr/local/mobilizeds/bin/index/study $fullPathStudy", $arrImport);
+
+// Get time in DATE_RFC2822 format (e.g. "Thu, 03 Aug 2023 12:32:04 -0700").
+$curTime = date(DATE_RFC2822);
+$strCmd = "/usr/local/mobilizeds/bin/index/study $fullPathStudy";
+$strImport = implode("\n", $arrImport);
+$strRes = "[" . $curTime . "] PUT: processed(" .
+	$fullPathCsvFileName . ")\n" . 
+	$strCmd . " 2>&1" . 
+	$strImport . "\n";
+
+// Update log file with process status.
+$fp = fopen("/var/www/apps/import/logs/log" . $studyid . ".txt", "a+");
+fwrite($fp, $strRes);
+fclose($fp);
+$fp = fopen("/var/www/apps/import/logs/log_o" . $studyid . ".txt", "w+");
+fwrite($fp, $strRes);
+fclose($fp);
+
 if ($status === false) {
 	// Cannot import study.
-	$arrRes['err_log'] = $strErrLog;
+	$arrRes['err_log'] = "Cannot import metadata.\n\n" . $strErrLog;
 	$arrRes['num_of_subjects_avail'] = count($arrSubjInfo);
 	$arrRes['num_of_subjects_save'] = $cntJsonFiles;
 	echo json_encode($arrRes);
