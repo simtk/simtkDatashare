@@ -69,10 +69,7 @@ If you wish to enable the automatically generated querying tool for your dataset
 <a name="provide"></a>
 <h2>How Do I Provide Metadata?</h2>
 
-<p>You can provide metadata in three ways. See the table below. <b>Most datasets use both a data directory structure template [1] AND one of the metadata file approaches [2 or 3].</b></p>
-
-<a name="questions"></a>
-<p>Questions? <a href="https://<?php echo $domain_name;?>/plugins/phpBB/indexPhpbb.php?group_id=11&pluginname=phpBB">Submit them to SimTK discussion forum</a>.</p>
+<p>You can provide metadata in three ways. See the table below. <b>Most datasets use both a data directory structure template [3] AND one of the metadata file approaches [1 or 2].</b></p>
 <br/>
 
 <table class="table table-bordered">
@@ -131,7 +128,8 @@ If you wish to enable the automatically generated querying tool for your dataset
 
 <h2>Questions?</h2>
 
-<p>Do you have other questions about providing or interpreting metadata shared with the datasets on SimTK? <a href="metadata_FAQ.php">Check out the FAQ</a>.</p>
+<a name="questions"></a>
+<p>Do you have other questions about providing or interpreting metadata shared with the datasets on SimTK? Check out the <a href="metadata_FAQ.php">FAQ</a> or submit question to <a href="https://<?php echo $domain_name;?>/plugins/phpBB/indexPhpbb.php?group_id=11&pluginname=phpBB">SimTK discussion forum</a>.</p>
 
 </div>
 </body>

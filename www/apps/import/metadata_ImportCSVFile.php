@@ -87,7 +87,7 @@ a {
 <br/><br/>
 
 <li>Specify the row number of the header and the column number for the folder ID. In the example, the row number is 1. The column with the folder ID is A, or the first column, so we enter the number 1.</li>
-<li style="color:#f75236;">It can be hard to clean up the automatically generated metadata files, so FIRST click “Verify” to confirm that there are no errors with the spreadsheet.</li>
+<b><li>It can be hard to clean up the automatically generated metadata files, so FIRST click “Verify” to confirm that there are no errors with the spreadsheet.</li></b>
 <li>If there are no errors, click “Process” to generate the metadata files.</li>
 </ol>
 
