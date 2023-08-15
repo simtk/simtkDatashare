@@ -57,14 +57,15 @@ sub send_link {
 	my $estimatedZipFileSize = $request->{ estimatedZipFileSize };
 	my $paramslist = $request->{ paramslist };
 	my $filters_dir = $request->{ filters_dir };
+	my $fileName = (split '/', $package->{ url })[-1];
 	my $body     = <<EOF;
 <p>Hello $session->{ firstname },</p>
 
-<p>Your query of the dataset "$session->{ study_name }" with the following parameters:</p>
+<p>Your query of the dataset "$session->{ study_name }" in project "$session->{ group_name }" with the following parameters:</p>
 
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${ paramslist } ${ filters_dir }</p>
 
-<p>has returned ${ uniqueFilesLength } files over ${ strSubjects }. You can retrieve those results by <a href="$request->{ urlDownload }&namePackage=$package->{ url }&agreed=1">clicking this link</a>. You may need to copy-and-paste the link into your browser.</p>
+<p>has returned ${ uniqueFilesLength } files over ${ strSubjects }. You can retrieve those results from the file "$fileName" by <a href="$request->{ urlDownload }&namePackage=$package->{ url }&agreed=1">clicking this link</a>. You may need to copy-and-paste the link into your browser.</p>
 
 <p>Note: if your results do not download, make sure you have allowed pop-ups. In most browsers, you can do this by selecting the small icon to "allow pop-ups..." in the URL bar.  Once pop-ups are allowed, click the link again to download the results.</p>
 
