@@ -178,7 +178,8 @@ if ($userId > 0 &&
 		$_SESSION['email'],
 		$_SESSION['firstname'],
 		$_SESSION['lastname'],
-		$_SESSION['group_name']);
+		$_SESSION['group_name'],
+		$_SESSION['study_name']);
 
 	return;
 }

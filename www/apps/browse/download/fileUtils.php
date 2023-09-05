@@ -195,7 +195,8 @@ function recordZipFileEntry($arrDbConf,
 	$email,
 	$firstName,
 	$lastName,
-	$groupName) {
+	$groupName,
+	$studyName) {
 
 	// Get db connection.
 	$db_connection = pg_connect("host=localhost " .
@@ -214,11 +215,12 @@ function recordZipFileEntry($arrDbConf,
 	$firstName = htmlspecialchars($firstName);
 	$lastName = htmlspecialchars($lastName);
 	$groupName = htmlspecialchars($groupName);
+	$studyName = htmlspecialchars($studyName);
 
 	$strInsert = "INSERT INTO zipfile_job " .
-		"(group_id, study_id, user_id, token, fileshash, email, add_date, firstname, lastname, groupname) " .
+		"(group_id, study_id, user_id, token, fileshash, email, add_date, firstname, lastname, groupname, studyname) " .
 		"VALUES " .
-		"($1, $2, $3, $4, $5, $6, NOW(), $7, $8, $9)"; 
+		"($1, $2, $3, $4, $5, $6, NOW(), $7, $8, $9, $10)"; 
 	$result = pg_query_params($db_connection, $strInsert,
 		array(
 			$groupId,
@@ -229,7 +231,8 @@ function recordZipFileEntry($arrDbConf,
 			$email,
 			$firstName,
 			$lastName,
-			$groupName
+			$groupName,
+			$studyName
 		)
 	);
 	pg_close($db_connection);
@@ -247,7 +250,8 @@ function getNextZipFileEntry($arrDbConf,
 	&$email,
 	&$firstName,
 	&$lastName,
-	&$groupName) {
+	&$groupName,
+	&$studyName) {
 
 	// Get db connection.
 	$db_connection = pg_connect("host=localhost " .
@@ -256,7 +260,7 @@ function getNextZipFileEntry($arrDbConf,
 		"password=" . $arrDbConf["pass"]);
 
 	// Status value of 0 means zipfile is to be created.
-	$strQuery = "SELECT zipfile_id, group_id, study_id, user_id, token, fileshash, email, firstname, lastname, groupname " .
+	$strQuery = "SELECT zipfile_id, group_id, study_id, user_id, token, fileshash, email, firstname, lastname, groupname, studyname " .
 		"FROM zipfile_job " .
 		"WHERE status=0 " .
 		"ORDER BY zipfile_id " .
@@ -281,6 +285,7 @@ function getNextZipFileEntry($arrDbConf,
 		$firstName = $row["firstname"];
 		$lastName = $row["lastname"];
 		$groupName = $row["groupname"];
+		$studyName = $row["studyname"];
 	}
 
 	pg_free_result($result);
@@ -368,6 +373,7 @@ function countZipFileInProgress($arrDbConf,
 	&$startDate,
 	&$userId,
 	&$groupName,
+	&$studyName,
 	&$studyId,
 	&$fileName) {
 
@@ -379,7 +385,7 @@ function countZipFileInProgress($arrDbConf,
 
 	$startDate = false;
 	$strQuery = "SELECT FLOOR(EXTRACT(EPOCH FROM start_date)) as sd, " .
-		"user_id, groupname, study_id, filename " .
+		"user_id, groupname, studyname, study_id, filename " .
 		"FROM zipfile_job " .
 		"WHERE status=1";
 	$result = pg_query_params($db_connection, $strQuery, array());
@@ -388,6 +394,7 @@ function countZipFileInProgress($arrDbConf,
 		$startDate = $row["sd"];
 		$userId = $row["user_id"];
 		$groupName = $row["groupname"];
+		$studyName = $row["studyname"];
 		$studyId = $row["study_id"];
 		$fileName = $row["filename"];
 	}

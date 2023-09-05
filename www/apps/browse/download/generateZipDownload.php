@@ -55,6 +55,7 @@ $cntZipInProgress = countZipFileInProgress($arrDbConf,
 	$startDate,
 	$userId,
 	$groupName,
+	$studyName,
 	$studyId,
 	$fileName);
 if ($cntZipInProgress > 0) {
@@ -69,6 +70,7 @@ if ($cntZipInProgress > 0) {
 		$theMsgBody = "Data Share zip file creation is taking more than $duration seconds.";
 		$theMsgBody .= "<br/>User ID: $userId";
 		$theMsgBody .= "<br/>Group Name: $groupName";
+		$theMsgBody .= "<br/>Study Name: $studyName";
 		$theMsgBody .= "<br/>Study ID: $studyId";
 		$theMsgBody .= "<br/>Filename: $fileName";
 		mail($emailAdmin, 'Data Share zip file for download is being created.',
@@ -93,6 +95,7 @@ $email = false;
 $firstName = false;
 $lastName = false;
 $groupName = false;
+$studyName = false;
 $status = getNextZipFileEntry($arrDbConf, 
 	$zipfileId, 
 	$groupId, 
@@ -103,7 +106,8 @@ $status = getNextZipFileEntry($arrDbConf,
 	$email,
 	$firstName,
 	$lastName,
-	$groupName);
+	$groupName,
+	$studyName);
 if ($status == false) {
 	// Done. No new entry available for processing.
 	return;
@@ -238,11 +242,17 @@ $urlDownload = "https://" . $domain_name .
 	"token=" . $token . "&" .
 	"&namePackage=" . $nameRandDir . "/" . $strFileName;
 
-$theMsgBody = 'Hi ' . $firstName . " " . $lastName .
-	'<br/><br/>' .
-	'The data you requested from project "' . $groupName . '" is ready for download from <a href="' .
+$theMsgBody = 'Hello ' . $firstName .
+	',<br/><br/>' .
+	'The data file you requested from the dataset "' .
+	$studyName .
+	'" in project "' . 
+	$groupName . 
+	'" is ready. You can download the file "' . 
+	$strFileName .
+	'" by <a href="' .
 	$urlDownload .
-	'">this link</a>. ' .
+	'">clicking this link</a>. ' .
 	'You may need to copy-and-paste the link into your browser.' .
 	'<br/><br/>' .
 	'Note: if the data file does not download, make sure you have allowed pop-ups. In most browsers, you can do this by selecting the small icon to "allow pop-ups..." in the URL bar. Once pop-ups are allowed, click the link again to download the data file.' .
