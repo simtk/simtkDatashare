@@ -164,6 +164,16 @@ include_once("../../baseIncludes.php");
 		}).done(function(res) {
 			// Success in parse and import CSV file.
 
+			var errStatus = "";
+			var strErrLog = res.err_log.trim();
+			if (strErrLog.indexOf("***ERROR***") != -1) {
+				strErrLog = strErrLog.substr(11);
+				errStatus = "ERROR - ";
+			}
+			else if (strErrLog.indexOf("***WARNING***") != -1) {
+				strErrLog = strErrLog.substr(13);
+				errStatus = "WARNING - ";
+			}
 			if (res.status == "Success") {
 				// Display result in modal dialog.
 				if (res.isSave) {
@@ -173,11 +183,11 @@ include_once("../../baseIncludes.php");
 							" subjects available from metadata CSV file. " +
 							res.num_of_subjects_save + 
 							" subjects processed.";
-						if (res.err_log.trim() != "") {
+						if (strErrLog != "") {
 							$("#modalMsgImportMetadata").html(
-								"<PRE>" + res.err_log + "</PRE>"
+								"<PRE>" +strErrLog + "</PRE>"
 							);
-							strMsg += "<br/>ERROR - " +
+							strMsg += "<br/>" + errStatus +
 								"<a href='metadata_ImportCSVFile.php '" +
 								"target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
 						}
@@ -192,11 +202,11 @@ include_once("../../baseIncludes.php");
 							" subjects available from metadata CSV file. " +
 							res.num_of_subjects_save + 
 							" subjects processed.";
-						if (res.err_log.trim() != "") {
+						if (strErrLog != "") {
 							$("#modalMsgImportMetadata").html(
-								"<PRE>" + res.err_log + "</PRE>"
+								"<PRE>" + strErrLog + "</PRE>"
 							);
-							strMsg += "<br/>ERROR - " +
+							strMsg += "<br/>" + errStatus +
 								"<a href='metadata_ImportCSVFile.php '" +
 								"target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
 						}
@@ -248,11 +258,11 @@ include_once("../../baseIncludes.php");
 						" subjects available from metadata CSV file. " +
 						res.num_of_subjects_save + 
 						" subjects will be processed.";
-					if (res.err_log.trim() != "") {
+					if (strErrLog != "") {
 						$("#modalMsgImportMetadata").html(
-							"<PRE>" + res.err_log + "</PRE>"
+							"<PRE>" + strErrLog + "</PRE>"
 						);
-						strMsg += "<br/>ERROR - " +
+						strMsg += "<br/>" + errStatus +
 							"<a href='metadata_ImportCSVFile.php '" +
 							"target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
 					}
@@ -273,11 +283,11 @@ include_once("../../baseIncludes.php");
 						" subjects available from metadata CSV file. " +
 						res.num_of_subjects_save + 
 						" subjects processed.";
-					if (res.err_log.trim() != "") {
+					if (strErrLog != "") {
 						$("#modalMsgImportMetadata").html(
-							"<PRE>" + res.err_log + "</PRE>"
+							"<PRE>" + strErrLog + "</PRE>"
 						);
-						strMsg += "<br/>ERROR - " +
+						strMsg += "<br/>" + errStatus +
 							"<a href='metadata_ImportCSVFile.php '" +
 							"target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
 					}
@@ -291,11 +301,11 @@ include_once("../../baseIncludes.php");
 						" subjects available from metadata CSV file. " +
 						res.num_of_subjects_save + 
 						" subjects will be processed.";
-					if (res.err_log.trim() != "") {
+					if (strErrLog != "") {
 						$("#modalMsgImportMetadata").html(
-							"<PRE>" + res.err_log + "</PRE>"
+							"<PRE>" + strErrLog + "</PRE>"
 						);
-						strMsg += "<br/>ERROR - " +
+						strMsg += "<br/>" + errStatus +
 							"<a href='metadata_ImportCSVFile.php '" +
 							"target='_blank'>Click here</a> for instructions to populate from metadata CSV file.";
 					}
