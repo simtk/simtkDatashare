@@ -133,9 +133,8 @@ if ($arrSubjInfo == null) {
 $idxEnd = strrpos($fullPathCsvFileName, "/");
 if ($idxEnd === false) {
 	// Cannot get path to directory of metadata CSV File.
-	$arrRes['err_log'] = TOKEN_ERROR . 
-		"Cannot get path to Metadata CSV File.\n\n" . 
-		$strErrLog;
+	$arrRes['err_log'] = TOKEN_ERROR . "Cannot get path to MetadataCSV file: " . 
+		$fullPathCsvFileName;
 	$arrRes['num_of_subjects_avail'] = count($arrSubjInfo);
 	echo json_encode($arrRes);
 	return false;
@@ -255,6 +254,13 @@ function writeMetadataJsonFiles($fullPathCsvDir, $arrSubjInfo, $isSave, &$strErr
 		}
 
 		$idxCount++;
+	}
+
+	if (trim($strErrLog) != "" &&
+		strpos($strErrLog, TOKEN_ERROR) !== 0 &&
+		strpos($strErrLog, TOKEN_WARNING) !== 0) {
+		// Add warning.
+		$strErrLog = TOKEN_WARNING . $strErrLog;
 	}
 
 	return $idxCount;
