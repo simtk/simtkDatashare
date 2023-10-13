@@ -164,6 +164,25 @@ include_once("../../baseIncludes.php");
 		}).done(function(res) {
 			// Success in parse and import CSV file.
 
+			// Retrieve first 2 columns of header of CSV file..
+			var strHead = "";
+			if (res.hasOwnProperty("header")) {
+				var sizeHead = res.header.length;
+				if (theSubjectColumn - 1 < sizeHead) {
+					strHead += "Column with subject ID: " + 
+						res.header[theSubjectColumn - 1];
+				}
+				if (0 < sizeHead) {
+					strHead += "\nFirst subject column: " + res.header[0];
+				}
+				if (1 < sizeHead) {
+					strHead += "\nSecond subject column: " + res.header[1];
+				}
+				if (strHead != "") {
+					strHead += "\n\n";
+				}
+			}
+
 			var errStatus = "";
 			var strErrLog = res.err_log.trim();
 			if (strErrLog.indexOf("***ERROR***") != -1) {
@@ -174,6 +193,10 @@ include_once("../../baseIncludes.php");
 				strErrLog = strErrLog.substr(13);
 				errStatus = "WARNING - ";
 			}
+
+			// Show first 2 columns of header if available.
+			strErrLog = strHead + strErrLog;
+
 			if (res.status == "Success") {
 				// Display result in modal dialog.
 				if (res.isSave) {

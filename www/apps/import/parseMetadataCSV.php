@@ -120,10 +120,12 @@ $arrSubjInfo = getSubjInfo($fullPathCsvFileName,
 	$idxRowHead,
 	$idxColSubj,
 	$subjPrefix,
-	$strErrLog);
+	$strErrLog,
+	$arrHead);
 if ($arrSubjInfo == null) {
 	// Error in parsing of metadata CSV file.
 	$arrRes['err_log'] = $strErrLog;
+	$arrRes['header'] = $arrHead;
 	echo json_encode($arrRes);
 	return false;
 }
@@ -136,6 +138,7 @@ if ($idxEnd === false) {
 	$arrRes['err_log'] = TOKEN_ERROR . "Cannot get path to MetadataCSV file: " . 
 		$fullPathCsvFileName;
 	$arrRes['num_of_subjects_avail'] = count($arrSubjInfo);
+	$arrRes['header'] = $arrHead;
 	echo json_encode($arrRes);
 	return false;
 }
@@ -149,6 +152,7 @@ if (!$isSave) {
 	$arrRes['err_log'] = $strErrLog;
 	$arrRes['num_of_subjects_avail'] = count($arrSubjInfo);
 	$arrRes['num_of_subjects_save'] = $cntJsonFiles;
+	$arrRes['header'] = $arrHead;
 	echo json_encode($arrRes);
 	return true;
 }
@@ -182,6 +186,7 @@ if ($status === false) {
 	$arrRes['err_log'] = TOKEN_ERROR . "Cannot import metadata.\n\n" . $strErrLog;
 	$arrRes['num_of_subjects_avail'] = count($arrSubjInfo);
 	$arrRes['num_of_subjects_save'] = $cntJsonFiles;
+	$arrRes['header'] = $arrHead;
 	echo json_encode($arrRes);
 	return false;
 }
@@ -194,6 +199,7 @@ $arrRes['err_log'] = $strErrLog;
 $arrRes['num_of_subjects_avail'] = count($arrSubjInfo);
 $arrRes['num_of_subjects_save'] = $cntJsonFiles;
 $arrRes['total_metadata'] = $cntMetaData;
+$arrRes['header'] = $arrHead;
 echo json_encode($arrRes);
 
 
@@ -272,7 +278,8 @@ function getSubjInfo($fullPathCsvFileName,
 	$idxRowHead,
 	$idxColSubj,
 	$subjPrefix="subject",
-	&$strErrLog) {
+	&$strErrLog,
+	&$arrHead) {
 
 	$arrSubjWithEmptyCells = array();
 	$strErrLog = "";
