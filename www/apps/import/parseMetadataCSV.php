@@ -139,6 +139,7 @@ if ($idxEnd === false) {
 		$fullPathCsvFileName;
 	$arrRes['num_of_subjects_avail'] = count($arrSubjInfo);
 	$arrRes['header'] = $arrHead;
+	$arrRes['subjects'] = array_keys($arrSubjInfo);
 	echo json_encode($arrRes);
 	return false;
 }
@@ -153,6 +154,7 @@ if (!$isSave) {
 	$arrRes['num_of_subjects_avail'] = count($arrSubjInfo);
 	$arrRes['num_of_subjects_save'] = $cntJsonFiles;
 	$arrRes['header'] = $arrHead;
+	$arrRes['subjects'] = array_keys($arrSubjInfo);
 	echo json_encode($arrRes);
 	return true;
 }
@@ -187,6 +189,7 @@ if ($status === false) {
 	$arrRes['num_of_subjects_avail'] = count($arrSubjInfo);
 	$arrRes['num_of_subjects_save'] = $cntJsonFiles;
 	$arrRes['header'] = $arrHead;
+	$arrRes['subjects'] = array_keys($arrSubjInfo);
 	echo json_encode($arrRes);
 	return false;
 }
@@ -200,6 +203,7 @@ $arrRes['num_of_subjects_avail'] = count($arrSubjInfo);
 $arrRes['num_of_subjects_save'] = $cntJsonFiles;
 $arrRes['total_metadata'] = $cntMetaData;
 $arrRes['header'] = $arrHead;
+$arrRes['subjects'] = array_keys($arrSubjInfo);
 echo json_encode($arrRes);
 
 

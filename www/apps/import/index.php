@@ -166,20 +166,30 @@ include_once("../../baseIncludes.php");
 
 			// Retrieve first 2 columns of header of CSV file..
 			var strHead = "";
+			// Show header if available.
 			if (res.hasOwnProperty("header")) {
 				var sizeHead = res.header.length;
-				if (theSubjectColumn - 1 < sizeHead) {
-					strHead += "Column with subject ID: " + 
-						res.header[theSubjectColumn - 1];
-				}
 				if (0 < sizeHead) {
-					strHead += "\nFirst subject column: " + res.header[0];
+					strHead += "These are the header labels we have found:\n" + res.header[0];
 				}
 				if (1 < sizeHead) {
-					strHead += "\nSecond subject column: " + res.header[1];
+					strHead += ", " + res.header[1];
 				}
-				if (strHead != "") {
-					strHead += "\n\n";
+				if (0 < sizeHead) {
+					strHead += " ...\n\n";
+				}
+			}
+			// Show subject IDs if available.
+			if (res.hasOwnProperty("subjects")) {
+				var sizeSubj = res.subjects.length;
+				if (0 < sizeSubj) {
+					strHead += "These are the subject IDs we have found:\n" + res.subjects[0];
+				}
+				if (1 < sizeSubj) {
+					strHead += ", " + res.subjects[1];
+				}
+				if (0 < sizeSubj) {
+					strHead += " ...\n\n";
 				}
 			}
 
