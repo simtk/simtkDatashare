@@ -175,8 +175,12 @@ include_once("../../baseIncludes.php");
 				if (1 < sizeHead) {
 					strHead += ", " + res.header[1];
 				}
-				if (0 < sizeHead) {
+
+				if (2 < sizeHead) {
 					strHead += " ...\n\n";
+				}
+				else if (0 < sizeHead) {
+					strHead += "\n\n";
 				}
 			}
 			// Show subject IDs if available.
@@ -188,8 +192,12 @@ include_once("../../baseIncludes.php");
 				if (1 < sizeSubj) {
 					strHead += ", " + res.subjects[1];
 				}
-				if (0 < sizeSubj) {
+
+				if (2 < sizeSubj) {
 					strHead += " ...\n\n";
+				}
+				else if (0 < sizeSubj) {
+					strHead += "\n\n";
 				}
 			}
 
