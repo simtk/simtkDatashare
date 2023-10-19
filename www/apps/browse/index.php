@@ -107,6 +107,16 @@ include_once("../../baseIncludes.php");
 .ui-resizable-handle {
 	display:none !important;
 }
+
+a {
+	color: #f75236;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #f75236;
+	text-decoration: underline;
+}
 </style>
 
 <?php
