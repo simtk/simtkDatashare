@@ -412,12 +412,12 @@ include_once("../../baseIncludes.php");
 	<b>File Upload</b><br/>
 <ul>
 <li>Upload files by dragging and dropping them in the "Import and Edit Data" window below.  <b>Note: Filenames that start with a "." cannot be uploaded.</b></li>
-<li><b>Compressed files (.zip, .tar.gz, .tar):</b> SimTK will automatically expand compressed files. <b>For the automatic expansion to work propoerly, none of the file and directory names can start with a "."</b></li>
+<li><b>Compressed files (.zip, .tar.gz, .tar):</b> SimTK will automatically expand compressed files. <b>For the automatic expansion to work properly, none of the file and directory names can start with a "."</b></li>
 </ul>
 	<b>Provide Metadata & Enable Query Feature</b><br/>
 	To enable querying of your dataset, you need to <a style="color:#f75236;" href="metadata.php" target="_blank">provide metadata</a>. Options to add metadata:
 	<ul>
-	<li>SimTK can semi-automatically generate metadata files from a CSV file (See "Populate from Metatadata CSV File" section below).</li>
+	<li>SimTK can semi-automatically generate metadata files from a CSV file (See "Populate from Metadata CSV File" section below).</li>
 	<li>You can also explicitly provide metadata via files in each data folder or implicitly via your directory structure. <a style="color:#f75236;" href="metadata.php#provide" target="_blank">More details</a></li>
 	</ul>
 	<div id="importStatus"></div>
@@ -461,27 +461,37 @@ include_once("../../baseIncludes.php");
 		<div class="collapse" id="importMetadataCsvFile">
 			<div class="card-body" id="cardMetadataCsvFile">
 				<div class="containerMetadataCsvFile">
-					<div class="row">
-						<span class="hdrImport"><b>1. Import CSV file</b></span>
-						<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="File must contain a header row. Import file to the same directory level as folders to which metadata files will be added.">?</a></span>
+				<div class="metadataInfoLink">
+						<a href="https://simtkdata10-as.stanford.edu/apps/import/metadata_ImportCSVFile.php" target="_blank"> Detailed Instructions</a>
 					</div>
-					<div class="row">
-						<span class="hdrImport"><b>2. Select CSV file from "Import and Edit Data" section</b></span>
+						<div class="row">
+							<span class="hdrImport"><b>1. Upload CSV Metadata file to same folder as your subjects folder</b></span>
+							<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="File must contain a header row. Import file to the same directory level as folders to which metadata files will be added.">?</a></span>
+						</div>
+						<div class="row">
+							<span class="hdrImport"><b>2. Click on the CSV Metadata file you want to process</b></span>
+						</div>
+						<div class="row">
+							<span class="hdrImport"><b>3. Specify the header row number in your CSV Metadata file:
+							</b></span>
+							
+							<input type="number" id="headerRow" class="import-meta-field" name="headerRow" min="1" max="999" value="1">
+							<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Row where header information is located. Content in the row header should only contain alphanumeric characters in addition to the following characters: ( ) [ ] / ^ _ space">?</a></span>
+						</div>
+						<div class="row">
+							<span class="hdrImport"><b>4. Specify the column number for the subject ID in your CSV Metadata file:</b> </span>
+							
+							<input type="number" id="subjectColumn" class="import-meta-field" name="subjectColumn" min="1" max="999" value="1">
+							<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Column mapping: 1 = Column A (e.g., in Excel, Google Spreadsheet), 2 = Column B, 3 = Column C, etc.">?</a></span>
+						</div>
+						<div class="row">
+							<span class="hdrImport"><b>5. Click Pre-Check button to test if CSV Metadata file can be parsed correctly</b></span>
+						</div>
+						<div class="row">
+							<span class="hdrImport"><b>6. Click Run Parser button to parse CSV Metadata file and save metadata</b></span>
+						</div>
 					</div>
-					<div class="row">
-						<span class="hdrImport""><b>3. Specify the following parameters</b></span>
-					</div>
-					<div class="row">
-						<span class="msgImport"">Row number of header </span>
-						<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Row where header information is located. Content in the row header should only contain alphanumeric characters in addition to the following characters: ( ) [ ] / ^ _ space">?</a></span>
-						<input type="number" id="headerRow" name="headerRow" min="1" max="999" value="1">
-					</div>
-					<div class="row">
-						<span class="msgImport">Column number of column with subject ID </span>
-						<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Column mapping: 1 = Column A (e.g., in Excel, Google Spreadsheet), 2 = Column B, 3 = Column C, etc.">?</a></span>
-						<input type="number" id="subjectColumn" name="subjectColumn" min="1" max="999" value="1">
-					</div>
-				</div>
+					
 			</div>
 
 			<div class="card-footer">
@@ -491,14 +501,14 @@ include_once("../../baseIncludes.php");
 						value="Verify"
 						onclick="event.preventDefault(); handleSubmit(this)">
 						<span class="glyphicon glyphicon-check"></span>
-						Verify
+						Pre-Check
 					</button>
 					<button id="btnProcess" class="btn btn-success"
 						name="import_meta" 
 						value="Process"
 						onclick="event.preventDefault(); handleSubmit(this)">
 						<span class="glyphicon glyphicon-cog"></span>
-						Process
+						Run Parser
 					</button>
 				</div>
 			</div>

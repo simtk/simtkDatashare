@@ -70,7 +70,7 @@ a {
 
 <ol>
 <li>If needed, save your spreadsheet as a CSV (comma-separated) or CSV UTF-8 file. The file name must have the suffix .csv.</li> 
-<li>Upload the CSV file to the same directory as the folders named in the spreadsheet. In the example below, the spreadsheet name is TestMetaData.csv and it has been uploaded to be in the same directory as the data folders subject07 and subject11. These are the folder names which appear in column A of the spreadsheet.</li>
+<li>Upload the CSV file to the same folder as the subject folders named in the spreadsheet. In the example below, the spreadsheet name is TestMetaData.csv and it has been uploaded to be in the same folder as the data folders subject07 and subject11. These are the folder names which appear in column A of the spreadsheet.</li>
 
 <br/>
 
@@ -87,8 +87,8 @@ a {
 <br/><br/>
 
 <li>Specify the row number of the header and the column number for the folder ID. In the example, the row number is 1. The column with the folder ID is A, or the first column, so we enter the number 1.</li>
-<b><li>It can be hard to clean up the automatically generated metadata files, so FIRST click “Verify” to confirm that there are no errors with the spreadsheet.</li></b>
-<li>If there are no errors, click “Process” to generate the metadata files.</li>
+<b><li>It can be hard to clean up the automatically generated metadata files, so FIRST click “Pre-Check” to confirm that there are no errors with the spreadsheet.</li></b>
+<li>If there are no errors, click “Run Parser” to generate the metadata files.</li>
 </ol>
 
 </div>
