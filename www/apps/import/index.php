@@ -462,7 +462,7 @@ include_once("../../baseIncludes.php");
 			<div class="card-body" id="cardMetadataCsvFile">
 				<div class="containerMetadataCsvFile">
 				<div class="metadataInfoLink">
-						<a href="https://simtkdata10-as.stanford.edu/apps/import/metadata_ImportCSVFile.php" target="_blank"> Detailed Instructions</a>
+						<a href="metadata_ImportCSVFile.php" target="_blank"> Detailed Instructions</a>
 					</div>
 						<div class="row">
 							<span class="hdrImport"><b>1. Upload CSV Metadata file to same folder as your subjects folder</b></span>
