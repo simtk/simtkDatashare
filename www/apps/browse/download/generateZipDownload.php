@@ -61,8 +61,9 @@ $cntZipInProgress = countZipFileInProgress($arrDbConf,
 if ($cntZipInProgress > 0) {
 	$now = time();
 	$duration = $now - $startDate;
-	// If zip file creation took more than 5 minutes, notify webmaster.
-	if ($duration > 300) {
+	// If zip file creation took more than 10 minutes, notify webmaster every 10 minutes.
+	// NOTE: Divide by 60, in case cronjob is off by a few seconds.
+	if (round($duration / 60) % 10 == 0) {
 		$headers[] = 'MIME-Version: 1.0';
 		$headers[] = 'Content-type: text/html; charset=iso-8859-1';
 		$headers[] = 'From: noreply@' . $domain_name;
