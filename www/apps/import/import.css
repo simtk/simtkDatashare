@@ -125,7 +125,7 @@
 	color:#f75236
 }
 
-.popoverLic:hover {
+.popoverLic:hover, .popoverLic:focus {
 	color: #d82709;
 }
 
