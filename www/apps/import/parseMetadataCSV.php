@@ -10,6 +10,9 @@
 
 include_once("../../user/checkuser.php");
 
+define("TOKEN_ERROR", "***ERROR***");
+define("TOKEN_WARNING", "***WARNING***");
+
 $dirStudy = "/usr/local/mobilizeds/study/";
 
 // Get parameters.
@@ -42,21 +45,21 @@ $arrRes['num_of_subjects_save'] = 0;
 if ($perm <= 2) {
 	// Does not have permission to 
 	// import and parse metadata into study.
-	$arrRes['err_log'] = "Insufficient permissions.";
+	$arrRes['err_log'] = TOKEN_ERROR . "Insufficient permissions.";
 	echo json_encode($arrRes);
 	return false;
 }
 
 if (!is_numeric($studyid) || intval($studyid) < 1) {
 	// Invalid study id.
-	$arrRes['err_log'] = "Invalid study.";
+	$arrRes['err_log'] = TOKEN_ERROR . "Invalid study.";
 	echo json_encode($arrRes);
 	return false;
 }
 
 if (!is_numeric($idxRowHead)) {
 	// Invalid header row.
-	$arrRes['err_log'] = "Invalid header row.";
+	$arrRes['err_log'] = TOKEN_ERROR . "Invalid header row.";
 	echo json_encode($arrRes);
 	return false;
 }
@@ -64,14 +67,14 @@ $idxRowHead = intval($idxRowHead);
 $idxRowHead--;
 if ($idxRowHead < 0) {
 	// Invalid header row.
-	$arrRes['err_log'] = "Invalid row header index.";
+	$arrRes['err_log'] = TOKEN_ERROR . "Invalid row header index.";
 	echo json_encode($arrRes);
 	return false;
 }
 
 if (!is_numeric($idxColSubj)) {
 	// Invalid subject column.
-	$arrRes['err_log'] = "Invalid subject column.";
+	$arrRes['err_log'] = TOKEN_ERROR . "Invalid subject column.";
 	echo json_encode($arrRes);
 	return false;
 }
@@ -79,7 +82,7 @@ $idxColSubj = intval($idxColSubj);
 $idxColSubj--;
 if ($idxColSubj < 0) {
 	// Invalid subject column index.
-	$arrRes['err_log'] = "Invalid subject column index.";
+	$arrRes['err_log'] = TOKEN_ERROR . "Invalid subject column index.";
 	echo json_encode($arrRes);
 	return false;
 }
@@ -89,7 +92,7 @@ if ($idxColSubj < 0) {
 if (!$subjPrefix || trim($subjPrefix) == "" ||
 	strlen(trim($subjPrefix)) > 80 ||
 	ctype_alpha(trim($subjPrefix)) === false) {
-	$arrRes['err_log'] = "Invalid subject prefix.";
+	$arrRes['err_log'] = TOKEN_ERROR . "Invalid subject prefix.";
 	echo json_encode($arrRes);
 	return false;
 }
@@ -97,7 +100,7 @@ if (!$subjPrefix || trim($subjPrefix) == "" ||
 $tmpName = preg_replace("/[-A-Z0-9+_\. ~\/]/i", "", $nameMetadataCSVFile);
 if (!empty($tmpName) || strstr($nameMetadataCSVFile, "..")) {
         // Invalid filename.
-	$arrRes['err_log'] = "Invalid file name.";
+	$arrRes['err_log'] = TOKEN_ERROR . "Invalid file name.";
 	echo json_encode($arrRes);
 	return false;
 }
@@ -107,7 +110,7 @@ $fullPathCsvFileName = $dirStudy . "study" . $studyid .
 	"/files/" . $nameMetadataCSVFile . ".csv";
 if (!is_file($fullPathCsvFileName)) {
 	// Cannot open CSV file.
-	$arrRes['err_log'] = "Invalid file: " . $fullPathCsvFileName;
+	$arrRes['err_log'] = TOKEN_ERROR . "Invalid file: " . $fullPathCsvFileName;
 	echo json_encode($arrRes);
 	return false;
 }
@@ -117,10 +120,12 @@ $arrSubjInfo = getSubjInfo($fullPathCsvFileName,
 	$idxRowHead,
 	$idxColSubj,
 	$subjPrefix,
-	$strErrLog);
+	$strErrLog,
+	$arrHead);
 if ($arrSubjInfo == null) {
 	// Error in parsing of metadata CSV file.
 	$arrRes['err_log'] = $strErrLog;
+	$arrRes['header'] = $arrHead;
 	echo json_encode($arrRes);
 	return false;
 }
@@ -130,8 +135,11 @@ if ($arrSubjInfo == null) {
 $idxEnd = strrpos($fullPathCsvFileName, "/");
 if ($idxEnd === false) {
 	// Cannot get path to directory of metadata CSV File.
-	$arrRes['err_log'] = "Cannot get path to Metadata CSV File.\n\n" . $strErrLog;
+	$arrRes['err_log'] = TOKEN_ERROR . "Cannot get path to MetadataCSV file: " . 
+		$fullPathCsvFileName;
 	$arrRes['num_of_subjects_avail'] = count($arrSubjInfo);
+	$arrRes['header'] = $arrHead;
+	$arrRes['subjects'] = array_keys($arrSubjInfo);
 	echo json_encode($arrRes);
 	return false;
 }
@@ -145,6 +153,8 @@ if (!$isSave) {
 	$arrRes['err_log'] = $strErrLog;
 	$arrRes['num_of_subjects_avail'] = count($arrSubjInfo);
 	$arrRes['num_of_subjects_save'] = $cntJsonFiles;
+	$arrRes['header'] = $arrHead;
+	$arrRes['subjects'] = array_keys($arrSubjInfo);
 	echo json_encode($arrRes);
 	return true;
 }
@@ -175,9 +185,11 @@ fclose($fp);
 
 if ($status === false) {
 	// Cannot import study.
-	$arrRes['err_log'] = "Cannot import metadata.\n\n" . $strErrLog;
+	$arrRes['err_log'] = TOKEN_ERROR . "Cannot import metadata.\n\n" . $strErrLog;
 	$arrRes['num_of_subjects_avail'] = count($arrSubjInfo);
 	$arrRes['num_of_subjects_save'] = $cntJsonFiles;
+	$arrRes['header'] = $arrHead;
+	$arrRes['subjects'] = array_keys($arrSubjInfo);
 	echo json_encode($arrRes);
 	return false;
 }
@@ -190,6 +202,8 @@ $arrRes['err_log'] = $strErrLog;
 $arrRes['num_of_subjects_avail'] = count($arrSubjInfo);
 $arrRes['num_of_subjects_save'] = $cntJsonFiles;
 $arrRes['total_metadata'] = $cntMetaData;
+$arrRes['header'] = $arrHead;
+$arrRes['subjects'] = array_keys($arrSubjInfo);
 echo json_encode($arrRes);
 
 
@@ -203,16 +217,18 @@ function writeMetadataJsonFiles($fullPathCsvDir, $arrSubjInfo, $isSave, &$strErr
 		return 0;
 	}
 
-	// Clean up existing metadata.json files from subject subdirectories.
-	// Otherwise, old metadata.json files from subjects will be included.
-	$arrSubDirs = glob($fullPathCsvDir . "/*", GLOB_ONLYDIR);
-	foreach ($arrSubDirs as $subDir) {
-		// Get metadata file from subject subdirectory.
-		$fileMetadata = $subDir . "/metadata.json";
-		$isExists = file_exists($fileMetadata);
-		if ($isExists) {
-			// Remove old metadata file.
-			unlink($fileMetadata);
+	if ($isSave) {
+		// Clean up existing metadata.json files from subject subdirectories.
+		// Otherwise, old metadata.json files from subjects will be included.
+		$arrSubDirs = glob($fullPathCsvDir . "/*", GLOB_ONLYDIR);
+		foreach ($arrSubDirs as $subDir) {
+			// Get metadata file from subject subdirectory.
+			$fileMetadata = $subDir . "/metadata.json";
+			$isExists = file_exists($fileMetadata);
+			if ($isExists) {
+				// Remove old metadata file.
+				unlink($fileMetadata);
+			}
 		}
 	}
 
@@ -227,14 +243,14 @@ function writeMetadataJsonFiles($fullPathCsvDir, $arrSubjInfo, $isSave, &$strErr
 			continue;
 		}
 
-		$fhJsonFile = fopen($fullPathWithNameSubj . "/metadata.json", "w+");
-		if (!$fhJsonFile) {
-			// Cannot open destination file for writing.
-			$strErrLog .= "Cannot write metadata for $nameSubj.\n";
-			continue;
-		}
-
 		if ($isSave) {
+			$fhJsonFile = fopen($fullPathWithNameSubj . "/metadata.json", "w+");
+			if (!$fhJsonFile) {
+				// Cannot open destination file for writing.
+				$strErrLog .= "Cannot write metadata for $nameSubj.\n";
+				continue;
+			}
+
 			// JSON-encoded subject info.
 			$resStr = json_encode($subjInfo);
 
@@ -250,6 +266,13 @@ function writeMetadataJsonFiles($fullPathCsvDir, $arrSubjInfo, $isSave, &$strErr
 		$idxCount++;
 	}
 
+	if (trim($strErrLog) != "" &&
+		strpos($strErrLog, TOKEN_ERROR) !== 0 &&
+		strpos($strErrLog, TOKEN_WARNING) !== 0) {
+		// Add warning.
+		$strErrLog = TOKEN_WARNING . $strErrLog;
+	}
+
 	return $idxCount;
 }
 
@@ -259,26 +282,29 @@ function getSubjInfo($fullPathCsvFileName,
 	$idxRowHead,
 	$idxColSubj,
 	$subjPrefix="subject",
-	&$strErrLog) {
+	&$strErrLog,
+	&$arrHead) {
 
+	$arrSubjWithEmptyCells = array();
 	$strErrLog = "";
 	$arrHead = array();
 	$arrSubjInfo = array();
-	$cntRow = 0;
+	$arrTypes = array();
 
+	// Go through CSV file once first to locate the header row.
+	// NOTE: Assume that the header row can be any row in the CSV file.
 	$fhCsvFile = fopen($fullPathCsvFileName, "r");
 	if (!$fhCsvFile) {
 		// Cannot open destination file for reading.
+		$strErrLog = TOKEN_ERROR . "Invalid file: " . $fullPathCsvFileName;
 		return null;
 	}
-
-	$arrTypes = array();
-
-	// Read each line of CSV.
+	$foundHeaderRow = false;
+	$cntRow = 0;
 	while (($arrRead = fgetcsv($fhCsvFile, 0, ",")) !== FALSE) {
-		// Get header row.
 		if ($cntRow == $idxRowHead) {
-			// Header population.
+			// Found header row.
+			// Headers population.
 			foreach ($arrRead as $key=>$strHead) {
 				$strHead = trim($strHead);
 				if ($strHead != "") {
@@ -287,8 +313,31 @@ function getSubjInfo($fullPathCsvFileName,
 					$arrHead[$key] = $strHead;
 				}
 			}
+			// Done getting headers.
+			$foundHeaderRow = true;
+			break;
+		}
+		$cntRow++;
+	}
+	fclose($fhCsvFile);
+	if ($foundHeaderRow === false) {
+		// Header row not found.
+		// Import aborted.
+		$strErrLog = TOKEN_ERROR . "Cannot find header row.\n";
+		return null;
+	}
 
-			// Header row. Done processing header.
+	// Read each line of CSV file.
+	$fhCsvFile = fopen($fullPathCsvFileName, "r");
+	if (!$fhCsvFile) {
+		// Cannot open destination file for reading.
+		$strErrLog = TOKEN_ERROR . "Invalid file: " . $fullPathCsvFileName;
+		return null;
+	}
+	$cntRow = 0;
+	while (($arrRead = fgetcsv($fhCsvFile, 0, ",")) !== FALSE) {
+		// Ignore header row.
+		if ($cntRow == $idxRowHead) {
 			$cntRow++;
 			continue;
 		}
@@ -321,13 +370,17 @@ function getSubjInfo($fullPathCsvFileName,
 		$isDataComplete = true;
 		foreach ($arrHead as $key=>$val) {
 			if (trim($arrRead[$key]) == "") {
-				// Data at the column is empty. Flag to ignore this row.
+				// Data at this column is empty. Flag to ignore this row.
 				$isDataComplete = false;
 				break;
 			}
 		}
 		if ($isDataComplete === false) {
 			// Data row is incomplete. Ignore this row.
+			// Report this subject.
+			$nameSubj = $arrRead[$idxColSubj];
+			$nameSubj = str_replace('"', "'", $nameSubj);
+			$arrSubjWithEmptyCells[] = $nameSubj;
 			$cntRow++;
 			continue;
 		}
@@ -400,19 +453,29 @@ function getSubjInfo($fullPathCsvFileName,
 
 		$cntRow++;
 	}
-
-	// Done.
 	fclose($fhCsvFile);
 
 	if ($strErrLog !== "") {
 		// Inconsistent data type present.
 		// Import aborted.
+		$strErrLog = TOKEN_ERROR . $strErrLog;
 		return null;
 	}
+
+	if (count($arrSubjWithEmptyCells) !== 0) {
+		// Found empty cells.
+		// Issue warning.
+		$strErrLog = TOKEN_WARNING . "Empty cells present in:\n" . 
+			implode("\n", $arrSubjWithEmptyCells) . "\n\n";
+	}
 	else if (count($arrSubjInfo) == 0) {
+		// Did not find any empty cells in subject rows.
 		// Metadata not found.
 		// Import aborted.
-		$strErrLog = "Metadata not found.\n";
+		$strErrLog = TOKEN_ERROR . 
+			"Metadata with subject prefix '" . 
+			$subjPrefix . 
+			"' not found.\n";
 		return null;
 	}
 
