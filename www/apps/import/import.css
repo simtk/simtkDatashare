@@ -121,14 +121,6 @@
 	margin-right: 15px; 
 }
 
-.popoverLic {
-	color:#f75236
-}
-
-.myPopOver > .popoverLic:hover, .myPopOver > .popoverLic:focus {
-	color: #d82709;
-}
-
 .import-meta-field {
 	width: 55px;
 }
