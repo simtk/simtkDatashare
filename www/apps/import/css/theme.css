@@ -428,3 +428,22 @@
 .elfinder-ui-progressbar {
     background-color: #419bf3;
 }
+
+.popoverLic {
+	color:#f75236
+}
+
+.myPopOver > .popoverLic:hover, 
+.myPopOver > .popoverLic:focus {
+	color: #d82709;
+}
+
+a {
+	color: #f75236;
+	text-decoration: none;
+}
+
+a:hover, a:focus {
+	color: #d82709;;
+	text-decoration: underline;
+}
