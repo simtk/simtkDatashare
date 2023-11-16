@@ -130,6 +130,7 @@ if ($namePackage != "") {
 				<input type="hidden" name="userid" value="<?= $userid ?>">
 				<input type="hidden" name="email" value="<?= $email ?>">
 				<input type="hidden" name="pathSelected" value="<?= $pathSelected ?>">
+				<input type="hidden" name="domainName" value="<?= $domain_name ?>">
 			</form>
 			<form name="form-filefilter" action="<?= $relative_url ?>apps/filefilter/" method="get">
 				<input type="hidden" name="studyid" value="<?= $studyid ?>">    
