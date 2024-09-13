@@ -24241,6 +24241,10 @@ elFinder.prototype.commands.download = function() {
 				encodeURIComponent(JSON.stringify(targets));
 
 			/*
+			// SimTK NOTE: Comment out this section to disable default download click action
+			// in the Download menu item that handles multiple files and directory
+			// downloading which generates a zip file and then downloads
+			// the zip file using the browser download.
 			dfrd = fm.sequence($.map(targets, function(t) { return getTask(t); })).always(
 				function() {
 					fm.trigger('download', {files : files});
