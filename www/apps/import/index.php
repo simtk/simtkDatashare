@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2020-2023, SimTK DataShare Team
+ * Copyright 2020-2024, SimTK DataShare Team
  *
  * This file is part of SimTK DataShare. Initial development
  * was funded under NIH grants R01GM107340 and U54EB020405
@@ -572,8 +572,8 @@ include_once("../../baseIncludes.php");
 				['quicklook', 'info'],
 				['search'],
 				['view', 'sort'],
-				['help'],
-				['fullscreen']
+				//['help'],
+				//['fullscreen']
 			]
 		},
 
