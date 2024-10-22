@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2020-2022, SimTK DataShare Team
+ * Copyright 2020-2024, SimTK DataShare Team
  *
  * This file is part of SimTK DataShare. Initial development 
  * was funded under NIH grants R01GM107340 and U54EB020405 
@@ -25,13 +25,23 @@
 		$status = "No data imported yet.";
 	}
 	else {
-		// Get date from import log file and generate default status.
+		// Get beginning and end of date from import log file.
 		$pos1 = stripos($mystring, '[');
-		$pos2 = stripos($mystring, '-');
+		$pos2 = stripos($mystring, ']');
 		$numchar = $pos2 - $pos1;
 		$numchar = $numchar - 1;
-		$date = substr($mystring, $pos1, $numchar);
-		$status = "$date] ";
+		$date = substr($mystring, $pos1 + 1, $numchar);
+		// Check date string.
+		$arrTestDate = date_parse($date);
+		if (count($arrTestDate["errors"])) {
+			// Error in date
+			$status = "Error in date: " .
+				print_r($arrTestDate["errors"], true) .
+				"<br/>";
+		}
+		else {
+			$status = "[$date] ";
+		}
 	}
 
 	// Get parse result and make it more user-friendly.
