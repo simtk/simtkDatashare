@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2020-2022, SimTK DataShare Team
+ * Copyright 2020-2024, SimTK DataShare Team
  *
  * This file is part of SimTK DataShare. Initial development 
  * was funded under NIH grants R01GM107340 and U54EB020405 
@@ -222,9 +222,9 @@ function handleFileChange($cmd, &$result, $args, $elfinder) {
 				$isTARGZ = stripos($theFullFilePath, ".tar.gz", $idxStartTARGZ);
 				$idxStartTAR = strlen($theFullFilePath) - strlen(".tar");
 				$isTAR = stripos($theFullFilePath, ".tar", $idxStartTAR);
-				if (($idxStartZIP >= 0 && isZIP !== false) ||
-					($idxStartTARGZ >= 0 && isTARGZ !== false) ||
-					($idxStartTAR >= 0 && isTAR !== false)) {
+				if (($idxStartZIP >= 0 && $isZIP !== false) ||
+					($idxStartTARGZ >= 0 && $isTARGZ !== false) ||
+					($idxStartTAR >= 0 && $isTAR !== false)) {
 
 					$compressedFilesAdded[$theFullFilePath] = $theFullFilePath;
 				}
